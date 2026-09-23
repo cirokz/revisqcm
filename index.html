@@ -1445,9 +1445,51 @@ document.addEventListener("keydown", e => {
   }
 })();
 
-/* Service Worker (PWA) */
+/* =========================================================
+   Service Worker + Auto-update
+   ========================================================= */
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+
+  navigator.serviceWorker.register("sw.js").then(reg => {
+
+    // Vérifie les mises à jour au chargement
+    reg.update();
+
+    // Si une nouvelle version est trouvée
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      if(!newWorker) return;
+
+      newWorker.addEventListener("statechange", () => {
+        if(newWorker.state === "installed" && navigator.serviceWorker.controller){
+          // Nouvelle version prête → on prévient le SW de prendre la main
+          newWorker.postMessage("SKIP_WAITING");
+
+          // Puis on recharge la page automatiquement
+          const key = "revisqcm_last_reload";
+          const now = Date.now();
+          const last = parseInt(sessionStorage.getItem(key) || "0");
+          if(now - last > 3000){
+            sessionStorage.setItem(key, String(now));
+            window.location.reload();
+          }
+        }
+      });
+    });
+
+    // Vérifie les mises à jour toutes les 60 secondes quand l'onglet est actif
+    setInterval(() => {
+      if(document.visibilityState === "visible") reg.update();
+    }, 60000);
+  });
+
+  // Si le service worker change de contrôleur (nouvelle version active)
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if(refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
 }
 </script>
 </body>
