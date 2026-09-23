@@ -1,312 +1,1454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RévisQCM</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6c8cff">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RévisQCM">
+
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --border:#2a2f3a;
+    --text:#e6e9ef; --muted:#8b93a7; --accent:#6c8cff;
+    --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #1b2030 0%, var(--bg) 55%);
+    color:var(--text); font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    min-height:100vh; padding-bottom:60px;
+  }
+  .app{max-width:960px;margin:0 auto;padding:20px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .logo span{color:var(--accent)}
+  nav{display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:12px;border:1px solid var(--border);align-items:center;flex-wrap:wrap}
+  nav button{
+    background:none;border:none;color:var(--muted);padding:8px 14px;border-radius:9px;
+    font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit;
+  }
+  nav button:hover{color:var(--text)}
+  nav button.active{background:var(--panel2);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  h1{font-size:30px;font-weight:800;letter-spacing:-.8px;margin-bottom:6px}
+  .sub{color:var(--muted);font-size:14.5px;margin-bottom:24px;line-height:1.5}
+
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+  .panel h3{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;font-weight:700}
+
+  /* --- cours --- */
+  .course-list{display:flex;flex-direction:column;gap:10px}
+  .course-card{
+    background:var(--panel2);border:1.5px solid var(--border);border-radius:12px;padding:14px;
+    cursor:pointer;transition:.15s;
+  }
+  .course-card:hover{border-color:#3a4152}
+  .course-card.selected{border-color:var(--accent);background:rgba(108,140,255,.09)}
+  .course-head{display:flex;align-items:center;gap:12px}
+  .course-icon{font-size:22px;width:40px;height:40px;display:grid;place-items:center;background:var(--panel);border-radius:10px;flex-shrink:0}
+  .course-info{flex:1;min-width:0}
+  .course-name{font-weight:700;font-size:15px}
+  .course-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .check{
+    width:24px;height:24px;border-radius:7px;border:2px solid var(--border);display:grid;place-items:center;
+    font-size:14px;color:#fff;flex-shrink:0;transition:.15s;
+  }
+  .course-card.selected .check{background:var(--accent);border-color:var(--accent)}
+  .chapters{display:none;flex-wrap:wrap;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+  .course-card.selected .chapters{display:flex}
+  .chip{
+    font-size:12px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);
+    background:var(--panel);color:var(--muted);cursor:pointer;transition:.15s;font-weight:600;
+  }
+  .chip:hover{color:var(--text)}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* --- segments --- */
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{
+    flex:1;min-width:150px;background:var(--panel2);border:1.5px solid var(--border);color:var(--muted);
+    padding:13px 14px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;
+    text-align:left;transition:.15s;line-height:1.35;
+  }
+  .seg button small{display:block;font-size:11.5px;font-weight:500;opacity:.75;margin-top:3px}
+  .seg button:hover{border-color:#3a4152;color:var(--text)}
+  .seg button.active{border-color:var(--accent);background:rgba(108,140,255,.12);color:var(--text)}
+
+  .btn-primary{
+    width:100%;background:linear-gradient(135deg,#6c8cff,#5a6ff0);color:#fff;border:none;
+    padding:17px;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+    transition:.15s;box-shadow:0 8px 24px rgba(108,140,255,.28);
+  }
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(108,140,255,.38)}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+  .btn{
+    background:var(--panel2);border:1.5px solid var(--border);color:var(--text);padding:12px 20px;
+    border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .btn:hover{border-color:#3a4152;background:#242935}
+  .btn.danger{border-color:rgba(239,68,68,.4);color:#ff8a8a}
+  .btn.danger:hover{background:rgba(239,68,68,.12)}
+
+  /* --- quiz --- */
+  .quiz-top{margin-bottom:20px}
+  .progress-track{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-bottom:12px}
+  .progress-bar{height:100%;background:linear-gradient(90deg,#6c8cff,#8f6cff);border-radius:99px;transition:width .3s ease;width:0}
+  .quiz-meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-weight:600;gap:10px;flex-wrap:wrap}
+  #quiz-timer{font-variant-numeric:tabular-nums;padding:4px 11px;border-radius:20px;background:var(--panel2);border:1px solid var(--border)}
+  #quiz-timer.danger{color:#ff8a8a;border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.1);animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.55}}
+
+  .question-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px;margin-bottom:16px}
+  .q-chapter{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);
+    background:rgba(108,140,255,.12);padding:4px 10px;border-radius:6px;font-weight:700;margin-bottom:14px}
+  #q-text{font-size:20px;font-weight:700;line-height:1.45;margin-bottom:22px;letter-spacing:-.3px}
+
+  .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+  .choice{
+    background:var(--panel2);border:1.5px solid var(--border);color:var(--text);padding:14px 16px;
+    border-radius:11px;text-align:left;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;
+    transition:.13s;line-height:1.4;
+  }
+  .choice:hover:not(:disabled){border-color:var(--accent);background:rgba(108,140,255,.08);transform:translateY(-1px)}
+  .choice:disabled{cursor:default}
+  .choice.correct{background:rgba(34,197,94,.16);border-color:var(--green);color:#7ef0a8}
+  .choice.wrong{background:rgba(239,68,68,.14);border-color:var(--red);color:#ff9b9b}
+  .choice.dim{opacity:.45}
+
+  /* --- Boîte de calcul (type verif) --- */
+  .calc-box{
+    background:linear-gradient(135deg, rgba(108,140,255,.12), rgba(143,108,255,.12));
+    border:1.5px solid rgba(108,140,255,.35);
+    border-radius:12px;
+    padding:22px 24px;
+    margin:0 0 22px 0;
+    text-align:center;
+  }
+  .calc-box .verdict{
+    display:block;font-size:11px;font-weight:700;letter-spacing:1.5px;
+    text-transform:uppercase;color:var(--accent);margin-bottom:14px;
+  }
+  .calc-box pre{
+    font-family:'Courier New',ui-monospace,monospace;
+    font-size:20px;font-weight:700;color:#fff;margin:0;
+    white-space:pre-wrap;line-height:1.5;letter-spacing:.3px;
+  }
+  .choices.verif{grid-template-columns:repeat(2,1fr);gap:12px}
+  .choices.verif .choice{font-size:16px;padding:18px;text-align:center}
+
+  .feedback{margin-top:18px;padding:16px;border-radius:11px;font-size:14px;line-height:1.55;display:none}
+  .feedback.show{display:block}
+  .feedback.ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35)}
+  .feedback.ko{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35)}
+  .feedback b{display:block;margin-bottom:6px;font-size:14.5px}
+  .feedback .expl{color:var(--muted);font-size:13.5px}
+
+  .quiz-actions{display:flex;gap:10px}
+  .quiz-actions .btn-primary{flex:1;width:auto}
+
+  /* --- resultats --- */
+  .score-hero{text-align:center;padding:34px 20px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+  .score-big{font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1;margin-bottom:8px}
+  .score-label{color:var(--muted);font-size:14px;font-weight:600}
+  .score-emoji{font-size:44px;margin-bottom:10px}
+
+  .stat-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .stat-row:last-child{border-bottom:none}
+  .stat-row .name{flex:1;font-weight:600}
+  .bar-mini{width:110px;height:7px;background:var(--panel2);border-radius:99px;overflow:hidden}
+  .bar-mini div{height:100%;background:var(--accent);border-radius:99px}
+
+  .miss-item{background:var(--panel2);border-left:3px solid var(--red);border-radius:9px;padding:13px 15px;margin-bottom:9px;font-size:13.5px;line-height:1.5}
+  .miss-item .q{font-weight:700;margin-bottom:6px}
+  .miss-item .a{color:#7ef0a8;font-size:12.5px}
+  .miss-item .a.bad{color:#ff9b9b}
+  .miss-item .e{color:var(--muted);font-size:12.5px;margin-top:5px}
+
+  .grid-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:16px}
+  .kpi .v{font-size:26px;font-weight:800;letter-spacing:-1px}
+  .kpi .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-top:3px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:8px 10px;border-bottom:1px solid var(--border)}
+  td{padding:10px;border-bottom:1px solid var(--border);color:var(--text)}
+  tr:last-child td{border-bottom:none}
+
+  .empty{color:var(--muted);font-size:14px;text-align:center;padding:24px;font-style:italic}
+
+  .data-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:12px}
+
+  #profile-badge{cursor:pointer}
+
+  @media(max-width:620px){
+    h1{font-size:24px}
+    #q-text{font-size:17.5px}
+    .question-card{padding:19px}
+    .choices{grid-template-columns:1fr}
+    .choices.verif{grid-template-columns:1fr}
+    .seg button{min-width:100%}
+    .score-big{font-size:42px}
+    .calc-box pre{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">📝 Révis<span>QCM</span></div>
+    <nav>
+      <button data-nav="home" class="active">Accueil</button>
+      <button data-nav="stats">Statistiques</button>
+      <button data-nav="data">Données</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============== PROFIL ============== -->
+    <section id="view-profile" class="view" style="max-width:500px;margin:60px auto;">
+      <h1 style="text-align:center;margin-bottom:8px;">👤 Qui révise ?</h1>
+      <p class="sub" style="text-align:center;">Choisis ton profil ou crée-en un nouveau. Ta progression sera sauvegardée séparément.</p>
+
+      <div class="panel">
+        <h3>Profils existants</h3>
+        <div id="profile-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="profile-empty" class="empty" style="display:none;">Aucun profil pour l'instant</div>
+      </div>
+
+      <div class="panel">
+        <h3>Créer un nouveau profil</h3>
+        <div style="display:flex;gap:8px;">
+          <input id="new-profile-name" type="text" placeholder="Ton prénom ou pseudo"
+                 maxlength="20"
+                 style="flex:1;background:var(--panel2);border:1.5px solid var(--border);color:var(--text);
+                        padding:12px;border-radius:11px;font-family:inherit;font-size:14px;outline:none;">
+          <button class="btn" id="btn-create-profile" style="white-space:nowrap;">Créer</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== ACCUEIL ============== -->
+    <section id="view-home" class="view active">
+      <h1>Prêt à réviser ?</h1>
+      <p class="sub">Choisis tes cours, ton mode et ta difficulté. Les questions ratées reviennent automatiquement plus souvent.</p>
+
+      <div class="panel">
+        <h3>1 · Choisis tes cours et chapitres</h3>
+        <div id="course-list" class="course-list"></div>
+      </div>
+
+      <div class="panel">
+        <h3>2 · Longueur de la session</h3>
+        <div class="seg" id="mode-seg">
+          <button data-mode="rapide" class="active">⚡ Mode rapide<small>5 questions par cours</small></button>
+          <button data-mode="long">📚 Mode long<small>20 questions par cours</small></button>
+          <button data-mode="test">🧪 Mode test<small>40 questions · chrono ×3 · calculs</small></button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>3 · Difficulté</h3>
+        <div class="seg" id="diff-seg">
+          <button data-diff="facile" class="active">🟢 Facile<small>Sans chrono · 4 réponses</small></button>
+          <button data-diff="moyen">🟠 Moyen<small>60 s · 6 réponses · 2 calculs/matière</small></button>
+          <button data-diff="difficile">🔴 Difficile<small>60 s · 8 réponses · 3 calculs/matière</small></button>
+        </div>
+      </div>
+
+      <button id="btn-start" class="btn-primary">Commencer la session</button>
+    </section>
+
+    <!-- ============== QUIZ ============== -->
+    <section id="view-quiz" class="view">
+      <div class="quiz-top">
+        <div class="progress-track"><div class="progress-bar" id="quiz-bar"></div></div>
+        <div class="quiz-meta">
+          <span id="quiz-counter">Question 1 / 10</span>
+          <span id="quiz-course"></span>
+          <span id="quiz-timer">⏱ ∞</span>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <div class="q-chapter" id="q-chapter"></div>
+        <h2 id="q-text"></h2>
+        <div id="q-extra"></div>
+        <div id="q-choices" class="choices"></div>
+        <div id="q-feedback" class="feedback"></div>
+      </div>
+
+      <div class="quiz-actions">
+        <button id="btn-quit" class="btn">Quitter</button>
+        <button id="btn-next" class="btn-primary" style="display:none">Suivant →</button>
+      </div>
+    </section>
+
+    <!-- ============== RÉSULTATS ============== -->
+    <section id="view-result" class="view">
+      <div class="score-hero">
+        <div class="score-emoji" id="res-emoji">🎉</div>
+        <div class="score-big" id="res-score">0 / 0</div>
+        <div class="score-label" id="res-label"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Détail par cours</h3>
+        <div id="res-courses"></div>
+      </div>
+
+      <div class="panel" id="res-missed-panel">
+        <h3>À revoir</h3>
+        <div id="res-missed"></div>
+      </div>
+
+      <div class="data-actions">
+        <button class="btn" id="btn-retry-wrong">🔁 Refaire mes erreurs</button>
+        <button class="btn" id="btn-new-session">➕ Nouvelle session</button>
+      </div>
+    </section>
+
+    <!-- ============== STATS ============== -->
+    <section id="view-stats" class="view">
+      <h1>Statistiques</h1>
+      <p class="sub">Historique complet depuis ta première session.</p>
+      <div class="grid-stats" id="kpis"></div>
+
+      <div class="panel">
+        <h3>Réussite par cours</h3>
+        <div id="stats-courses"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Questions à revoir</h3>
+        <div id="stats-review"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Historique des sessions</h3>
+        <div id="stats-history"></div>
+      </div>
+    </section>
+
+    <!-- ============== DONNÉES ============== -->
+    <section id="view-data" class="view">
+      <h1>Données & sauvegarde</h1>
+      <p class="sub">Ta progression est enregistrée automatiquement dans ce navigateur. Exporte régulièrement un fichier pour la garder.</p>
+
+      <div class="panel">
+        <h3>Actions</h3>
+        <div class="data-actions">
+          <button class="btn" id="btn-export">💾 Exporter ma progression</button>
+          <button class="btn" id="btn-import">📂 Importer un fichier</button>
+          <button class="btn danger" id="btn-reset">🗑️ Réinitialiser ce profil</button>
+        </div>
+        <input type="file" id="file-input" accept="application/json" style="display:none">
+        <div class="note" id="data-info"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Comment ça marche ?</h3>
+        <div class="note" style="margin-top:0">
+          • Chaque réponse est enregistrée (bonne ou mauvaise) dans le fichier de sauvegarde.<br>
+          • Une question ratée revient beaucoup plus souvent dans les sessions suivantes (système de priorité).<br>
+          • Une question réussie plusieurs fois d'affilée devient plus rare.<br>
+          • Le fichier exporté contient l'historique complet : sessions, réponses, moyennes. Tu peux le réimporter sur un autre appareil.<br>
+          • Chaque profil (👤 en haut à droite) a sa propre progression, isolée des autres.
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- =========================================================
+     CHARGEMENT DES DONNÉES : un fichier JS par chapitre
+     ========================================================= -->
+<script src="data/macro-ch1.js"></script>
+<script src="data/macro-ch2.js"></script>
+<script src="data/macro-ch3.js"></script>
+<script src="data/macro-ch4.js"></script>
+
+<script src="data/math-ch1.js"></script>
+<script src="data/math-ch2.js"></script>
+<script src="data/math-ch3.js"></script>
+<script src="data/math-ch4.js"></script>
+<script src="data/math-ch5.js"></script>
+
+<script src="data/socio-ch1.js"></script>
+
+<script src="data/compta-ch1.js"></script>
+<script src="data/compta-ch2.js"></script>
+
+<script src="data/org-ch1.js"></script>
+<script src="data/droit-ch1.js"></script>
+
+<script src="data/micro-ch1.js"></script>
+<script src="data/micro-ch2.js"></script>
+
+<!-- Fichier des calculs à vérifier -->
+<script src="data/calculs.js"></script>
+
+<script>
 /* =========================================================
-   CALCULS À VÉRIFIER
-   Structure :
-   {
-     id, courseId, difficulty,
-     q   : énoncé ("Cette égalité est-elle correcte ?"),
-     calc: le calcul à vérifier (multi-lignes avec \n),
-     choices: ["✓ Correct", "✗ Incorrect"],
-     answer : 0 (Correct) ou 1 (Incorrect),
-     explanation
-   }
+   1. CONSTRUCTION DES COURS à partir des fichiers data/*.js
    ========================================================= */
-window.RQ_CALCULS = window.RQ_CALCULS || [];
+const COURSES = [];
+const courseMap = {};
 
-window.RQ_CALCULS.push(
+(window.RQ_DATA || []).forEach(block => {
+  if(!courseMap[block.courseId]){
+    courseMap[block.courseId] = {
+      id: block.courseId,
+      name: block.courseName,
+      icon: block.courseIcon,
+      color: block.courseColor,
+      chapters: [],
+      questions: []
+    };
+    COURSES.push(courseMap[block.courseId]);
+  }
+  courseMap[block.courseId].chapters.push({
+    id: block.chapterId,
+    name: block.chapterName
+  });
+  courseMap[block.courseId].questions.push(...block.questions);
+});
 
-  /* =====================================================
-     📐 MATHÉMATIQUES
-     ===================================================== */
-  { id:"calc-math-01", courseId:"math", difficulty:"facile",
-    q:"Cette égalité est-elle correcte ?",
-    calc: "3 × 7 = 21",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "3 × 7 = 21. Correct." },
+/* Calculs à vérifier (fichier séparé) */
+const CALCULS = window.RQ_CALCULS || [];
 
-  { id:"calc-math-02", courseId:"math", difficulty:"facile",
-    q:"Cette égalité est-elle correcte ?",
-    calc: "15 − 8 = 6",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "15 − 8 = 7, pas 6." },
+/* Index global question id -> { course, q } */
+const QINDEX = {};
+COURSES.forEach(c => c.questions.forEach(q => { QINDEX[q.id] = { course:c, q }; }));
+CALCULS.forEach(q => {
+  const course = courseMap[q.courseId];
+  if(course) QINDEX[q.id] = { course, q };
+});
 
-  { id:"calc-math-03", courseId:"math", difficulty:"facile",
-    q:"Cette résolution est-elle correcte ?",
-    calc: "x + 5 = 12\nx = 12 + 5\nx = 17",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "Pour isoler x, il faut soustraire 5 : x = 12 − 5 = 7." },
+/* =========================================================
+   2. MOTEUR
+   ========================================================= */
+const DIFFICULTIES = {
+  facile:    { label:"Facile",    time:0,  choices:4, color:"#22c55e" },
+  moyen:     { label:"Moyen",     time:60, choices:6, color:"#f59e0b" },
+  difficile: { label:"Difficile", time:60, choices:8, color:"#ef4444", traps:true }
+};
 
-  { id:"calc-math-04", courseId:"math", difficulty:"moyen",
-    q:"Cette résolution est-elle correcte ?",
-    calc: "2x + 3 = 11\n2x = 8\nx = 4",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "2x = 11 − 3 = 8, donc x = 4. Correct." },
+/* Multi-profils */
+let CURRENT_PROFILE = localStorage.getItem("revisqcm_current_profile") || null;
+function STORAGE_KEY(){
+  return CURRENT_PROFILE ? "revisqcm_v1_" + CURRENT_PROFILE : null;
+}
 
-  { id:"calc-math-05", courseId:"math", difficulty:"moyen",
-    q:"Cette résolution est-elle correcte ?",
-    calc: "3x − 5 = 10\n3x = 5\nx = 5/3",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "3x = 10 + 5 = 15, donc x = 5. Erreur de signe." },
+function defaultState(){
+  return { version:1, createdAt:Date.now(), updatedAt:Date.now(), questions:{}, sessions:[] };
+}
+let state = loadState();
 
-  { id:"calc-math-06", courseId:"math", difficulty:"moyen",
-    q:"Le calcul du discriminant est-il correct ?",
-    calc: "x² − 4x + 3 = 0\na = 1, b = −4, c = 3\nΔ = b² − 4ac\nΔ = 16 − 12\nΔ = 4",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Δ = 4. Correct." },
+function loadState(){
+  if(!CURRENT_PROFILE) return defaultState();
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY());
+    if(raw){
+      const p = JSON.parse(raw);
+      return Object.assign(defaultState(), p);
+    }
+  }catch(e){ console.warn("Lecture impossible", e); }
+  return defaultState();
+}
+function saveState(){
+  if(!CURRENT_PROFILE) return;
+  state.updatedAt = Date.now();
+  try{ localStorage.setItem(STORAGE_KEY(), JSON.stringify(state)); }
+  catch(e){ console.warn("Sauvegarde impossible", e); }
+}
 
-  { id:"calc-math-07", courseId:"math", difficulty:"moyen",
-    q:"Cette dérivée est-elle correcte ?",
-    calc: "f(x) = 4x³ − 5x² + 2x − 7\nf'(x) = 12x² − 10x + 2",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "On dérive terme à terme. Correct." },
+/* ---------- utilitaires ---------- */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function shuffle(a){
+  const arr = a.slice();
+  for(let i=arr.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+function choiceText(c){ return typeof c === "string" ? c : c.text; }
+function isTrap(c){ return typeof c === "object" && c.trap === true; }
 
-  { id:"calc-math-08", courseId:"math", difficulty:"moyen",
-    q:"Cette dérivée est-elle correcte ?",
-    calc: "f(x) = x³\nf'(x) = x²",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "La dérivée de x³ est 3x², pas x²." },
+/* ---------- priorité / répétition espacée ---------- */
+function priorityWeight(qid){
+  const s = state.questions[qid];
+  const q = QINDEX[qid]?.q;
+  let bonus = 0;
 
-  { id:"calc-math-09", courseId:"math", difficulty:"difficile",
-    q:"Cette dérivée composée est-elle correcte ?",
-    calc: "f(x) = (3x + 2)⁵\nf'(x) = 15(3x + 2)⁴",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "(u⁵)' = 5u⁴·u' = 5(3x+2)⁴ × 3 = 15(3x+2)⁴. Correct." },
+  // Bonus pour les calculs en mode test
+  if(typeof currentMode !== "undefined" && currentMode === "test" && q?.type === "verif"){
+    bonus = 1.5;
+  }
 
-  { id:"calc-math-10", courseId:"math", difficulty:"difficile",
-    q:"Cette dérivée exponentielle est-elle correcte ?",
-    calc: "f(x) = e^(2x)\nf'(x) = e^(2x)",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "(e^u)' = u'·e^u, donc f'(x) = 2·e^(2x)." },
+  if(!s || !s.seen) return 4 + bonus;
+  let w = 1;
+  if(s.lastResult === false) w += 7;
+  w += Math.min(s.wrong, 6) * 1.4;
+  if(s.box <= 1) w += 3;
+  if(s.box >= 4) w -= 0.75;
+  return Math.max(0.2, w + bonus);
+}
 
-  { id:"calc-math-11", courseId:"math", difficulty:"difficile",
-    q:"Cette limite est-elle correcte ?",
-    calc: "lim(x→+∞) (3x² − 4x + 1)/(2x² + 5)\n= 3/2",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Même degré en haut et en bas → limite = rapport des coefficients dominants = 3/2. Correct." },
+function weightedSample(pool, n){
+  const items = pool.map(q => ({ q, w: priorityWeight(q.id) }));
+  const out = [];
+  while(out.length < n && items.length){
+    const total = items.reduce((s,x)=>s+x.w, 0);
+    let r = Math.random() * total;
+    let idx = items.length - 1;
+    for(let j=0;j<items.length;j++){ r -= items[j].w; if(r <= 0){ idx = j; break; } }
+    out.push(items[idx].q);
+    items.splice(idx,1);
+  }
+  return out;
+}
 
-  { id:"calc-math-12", courseId:"math", difficulty:"difficile",
-    q:"Cette dérivée par quotient est-elle correcte ?",
-    calc: "f(x) = (x² + 1)/x\nf'(x) = 1 − 1/x²",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "En simplifiant f(x) = x + 1/x, on a f'(x) = 1 − 1/x². Correct." },
+/* ---------- choix affichés ---------- */
+function pickDisplayChoices(q, difficulty){
+  // Questions de type "verif" : toujours 2 réponses (Correct/Incorrect)
+  if(q.type === "verif"){
+    return [
+      { index: 0, text: "✓ Correct" },
+      { index: 1, text: "✗ Incorrect" }
+    ];
+  }
 
+  const conf = DIFFICULTIES[difficulty];
+  const count = Math.min(conf.choices, q.choices.length);
+  const correctIdx = q.answer;
+  const others = q.choices.map((_,i)=>i).filter(i => i !== correctIdx);
 
-  /* =====================================================
-     🧾 COMPTABILITÉ
-     ===================================================== */
-  { id:"calc-compta-01", courseId:"compta", difficulty:"facile",
-    q:"Ce calcul de TVA est-il correct ?",
-    calc: "Prix HT = 100 €\nTVA 20 %\nPrix TTC = 100 × 1,20 = 120 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "TTC = HT × (1 + taux). Correct." },
+  let chosen = [correctIdx];
 
-  { id:"calc-compta-02", courseId:"compta", difficulty:"facile",
-    q:"Ce calcul de remise est-il correct ?",
-    calc: "Prix = 200 €\nRemise 15 %\nNouveau prix = 200 × 0,15 = 30 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "30 € est le MONTANT de la remise, pas le nouveau prix. Bon calcul : 200 × 0,85 = 170 €." },
+  if(conf.traps){
+    const traps   = others.filter(i => isTrap(q.choices[i]));
+    const normal  = others.filter(i => !isTrap(q.choices[i]));
+    const maxTraps = Math.min(traps.length, Math.max(1, Math.floor(count/2)));
+    shuffle(traps).slice(0, maxTraps).forEach(i => chosen.push(i));
+    const rest = shuffle(normal);
+    while(chosen.length < count && rest.length) chosen.push(rest.pop());
+  } else {
+    const rest = shuffle(others);
+    while(chosen.length < count && rest.length) chosen.push(rest.pop());
+  }
 
-  { id:"calc-compta-03", courseId:"compta", difficulty:"facile",
-    q:"Ce calcul de marge est-il correct ?",
-    calc: "PV HT = 500 €\nCoût d'achat HT = 242 €\nMarge = 500 − 242 = 258 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Marge = PV HT − Coût d'achat HT = 258 €. Correct." },
+  return shuffle(chosen).map(i => ({ index:i, text:choiceText(q.choices[i]) }));
+}
 
-  { id:"calc-compta-04", courseId:"compta", difficulty:"moyen",
-    q:"Ce calcul de taux de marque est-il correct ?",
-    calc: "Marge = 258 €\nPV HT = 500 €\nTaux de marque = 258 / 500 × 100 = 51,6 %",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Taux de marque = Marge / PV HT × 100. Correct." },
+/* =========================================================
+   3. ÉTAT DE L'INTERFACE
+   ========================================================= */
+let selectedCourses  = new Set();
+let selectedChapters = {};
+let currentMode  = "rapide";
+let currentDiff  = "facile";
+let quiz = null;
 
-  { id:"calc-compta-05", courseId:"compta", difficulty:"moyen",
-    q:"Ce calcul de marge à partir du TTC est-il correct ?",
-    calc: "PV TTC = 900 € (TVA 20 %)\nCoût d'achat HT = 500 €\nMarge = 900 − 500 = 400 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "Il faut d'abord convertir le TTC en HT : 900 / 1,2 = 750 €, puis 750 − 500 = 250 €." },
+/* ---------- helpers pour les modes ---------- */
+function getPerCourse(){
+  if(currentMode === "rapide") return 5;
+  if(currentMode === "long")   return 20;
+  return 40;   // mode test
+}
 
-  { id:"calc-compta-06", courseId:"compta", difficulty:"moyen",
-    q:"Ce calcul de taux d'évolution est-il correct ?",
-    calc: "CA N−1 = 1 100 €\nCA N = 1 358 €\nTaux = (1358 − 1100) / 1100 × 100 = 23,45 %",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Formule correcte : (VA − VD) / VD × 100." },
+function getCalculsPerSubject(){
+  if(currentMode !== "test") return 0;
+  if(currentDiff === "facile") return 1;
+  if(currentDiff === "moyen")  return 2;
+  return 3;   // difficile
+}
 
-  { id:"calc-compta-07", courseId:"compta", difficulty:"moyen",
-    q:"Ce calcul de taux d'évolution est-il correct ?",
-    calc: "CA N−1 = 1 000 €\nCA N = 1 200 €\nTaux = (1200 − 1000) / 1200 × 100 = 16,67 %",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "Il faut diviser par la valeur de DÉPART (1000). Bon calcul : 200/1000 × 100 = 20 %." },
+function getQuestionTime(diff){
+  const base = DIFFICULTIES[diff].time;
+  if(!base) return 0;
+  return currentMode === "test" ? base * 3 : base;
+}
 
-  { id:"calc-compta-08", courseId:"compta", difficulty:"difficile",
-    q:"Ce calcul de BFR est-il correct ?",
-    calc: "Stocks = 50 000 €\nCréances clients = 30 000 €\nDettes fournisseurs = 20 000 €\nBFR = 50 000 + 30 000 − 20 000 = 60 000 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "BFR = Stocks + Créances − Dettes. Correct." },
+/* =========================================================
+   4. NAVIGATION
+   ========================================================= */
+function show(view){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + view).classList.add("active");
+  document.querySelectorAll("nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.nav === view));
+  if(view === "stats") renderStats();
+  if(view === "data")  renderData();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
 
-  { id:"calc-compta-09", courseId:"compta", difficulty:"difficile",
-    q:"Cette facture est-elle calculée correctement ?",
-    calc: "Brut HT = 500 €\nRemise 10 % = 50 €\nNet commercial = 450 €\nTVA 20 % = 450 × 0,20 = 90 €\nNet TTC = 540 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Ordre correct : brut → remise → net commercial → TVA → TTC. Correct." },
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.onclick = () => {
+    const target = btn.dataset.nav;
+    if(quiz && !quiz.finished && target !== "quiz"){
+      if(!confirm("Une session est en cours. La quitter ?")) return;
+      clearInterval(quiz.timerId);
+      quiz = null;
+    }
+    show(target);
+  };
+});
 
-  { id:"calc-compta-10", courseId:"compta", difficulty:"difficile",
-    q:"Ce calcul de taux de marge est-il correct ?",
-    calc: "Marge = 300 €\nCoût d'achat HT = 500 €\nTaux de marge = 300 / 500 × 100 = 60 %",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Taux de marge = Marge / Coût d'achat HT. Correct." },
+/* =========================================================
+   5. PROFILS
+   ========================================================= */
+function listProfiles(){
+  const names = [];
+  for(let i = 0; i < localStorage.length; i++){
+    const key = localStorage.key(i);
+    if(key && key.startsWith("revisqcm_v1_")){
+      names.push(key.replace("revisqcm_v1_", ""));
+    }
+  }
+  return names.sort();
+}
 
+function renderProfileScreen(){
+  const list = document.getElementById("profile-list");
+  const empty = document.getElementById("profile-empty");
+  list.innerHTML = "";
+  const profiles = listProfiles();
 
-  /* =====================================================
-     📊 MACROÉCONOMIE
-     ===================================================== */
-  { id:"calc-macro-01", courseId:"macro", difficulty:"facile",
-    q:"Ce calcul de PIB est-il correct ?",
-    calc: "C = 1 000\nI = 200\nG = 300\nX − M = 50\nPIB = 1000 + 200 + 300 + 50 = 1 550",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "PIB = C + I + G + (X − M). Correct." },
+  if(!profiles.length){
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
 
-  { id:"calc-macro-02", courseId:"macro", difficulty:"facile",
-    q:"Ce calcul de taux de chômage est-il correct ?",
-    calc: "Chômeurs U = 3 000\nActifs L = 30 000\nu = 3 000 / 30 000 × 100 = 10 %",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "u = U/L. Correct." },
+  profiles.forEach(name => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.gap = "8px";
 
-  { id:"calc-macro-03", courseId:"macro", difficulty:"moyen",
-    q:"Ce calcul de taux de croissance est-il correct ?",
-    calc: "PIB 2023 = 2 800\nPIB 2024 = 2 940\ng = (2940 − 2800) / 2800 × 100 = 5 %",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "g = ΔPIB / PIB initial × 100 = 140/2800 × 100 = 5 %. Correct." },
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.style.flex = "1";
+    btn.style.textAlign = "left";
+    btn.style.padding = "14px 18px";
+    btn.textContent = "👤 " + name;
+    btn.onclick = () => selectProfile(name);
 
-  { id:"calc-macro-04", courseId:"macro", difficulty:"moyen",
-    q:"Ce calcul de taux d'intérêt réel est-il correct ?",
-    calc: "i nominal = 5 %\nπ (inflation) = 2 %\ni réel = 5 + 2 = 7 %",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "Taux réel = i nominal − π = 5 − 2 = 3 %. Erreur de signe." },
+    const del = document.createElement("button");
+    del.className = "btn danger";
+    del.textContent = "🗑";
+    del.title = "Supprimer ce profil";
+    del.onclick = () => {
+      if(!confirm(`Supprimer définitivement le profil "${name}" et toute sa progression ?`)) return;
+      localStorage.removeItem("revisqcm_v1_" + name);
+      if(CURRENT_PROFILE === name){
+        CURRENT_PROFILE = null;
+        localStorage.removeItem("revisqcm_current_profile");
+      }
+      renderProfileScreen();
+    };
 
-  { id:"calc-macro-05", courseId:"macro", difficulty:"moyen",
-    q:"Cette capitalisation est-elle correcte ?",
-    calc: "S0 = 1 000 €\ni = 5 %\nn = 3 ans\nS3 = 1000 × 1,05³ ≈ 1 157,63 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Sn = S0(1+i)^n. Correct." },
+    row.appendChild(btn);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
 
-  { id:"calc-macro-06", courseId:"macro", difficulty:"moyen",
-    q:"Cette actualisation est-elle correcte ?",
-    calc: "Sn = 1 000 € dans 2 ans\ni = 5 %\nS0 = 1000 / 1,05² ≈ 907,03 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "S0 = Sn/(1+i)^n. Correct." },
+function selectProfile(name){
+  CURRENT_PROFILE = name;
+  localStorage.setItem("revisqcm_current_profile", name);
+  state = loadState();
 
-  { id:"calc-macro-07", courseId:"macro", difficulty:"difficile",
-    q:"Ce calcul de la VAN est-il correct ?",
-    calc: "Investissement = 100 000 €\nRevenus = 20 000 €/an sur 6 ans\ni = 5 %\nVA = 101 513 €\nVAN = 101 513 − 100 000 = 1 513 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "VAN = VA − I0 = 1 513 € > 0. Investissement rentable." },
+  // Reset sélection
+  selectedCourses = new Set();
+  selectedChapters = {};
 
-  { id:"calc-macro-08", courseId:"macro", difficulty:"difficile",
-    q:"Ce calcul de fonction d'investissement est-il correct ?",
-    calc: "I = I0 − B·i\nI0 = 500, B = 50, i = 4\nI = 500 − 50 × 4 = 500 − 200 = 300",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "I = I0 − B·i. Correct." },
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-home").classList.add("active");
+  document.querySelectorAll("nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.nav === "home"));
 
+  if(COURSES.length){
+    selectedCourses.add(COURSES[0].id);
+    selectedChapters[COURSES[0].id] = [];
+  }
+  renderHome();
+  renderData();
+  updateProfileBadge();
+}
 
-  /* =====================================================
-     🛒 MICROÉCONOMIE
-     ===================================================== */
-  { id:"calc-micro-01", courseId:"micro", difficulty:"facile",
-    q:"Ce calcul de coût total est-il correct ?",
-    calc: "CF = 500 €\nCV = 200 €\nCT = 500 + 200 = 700 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "CT = CF + CV. Correct." },
+function createProfile(){
+  const input = document.getElementById("new-profile-name");
+  const name = input.value.trim();
+  if(!name){ alert("Choisis un nom !"); return; }
+  if(name.length > 20){ alert("20 caractères maximum."); return; }
+  if(listProfiles().includes(name)){ alert("Ce nom est déjà pris."); return; }
+  input.value = "";
+  selectProfile(name);
+}
 
-  { id:"calc-micro-02", courseId:"micro", difficulty:"facile",
-    q:"Ce calcul de recette totale est-il correct ?",
-    calc: "P = 10 €\nQ = 50 unités\nRT = 10 × 50 = 500 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "RT = P × Q. Correct." },
+function updateProfileBadge(){
+  let badge = document.getElementById("profile-badge");
+  if(!badge){
+    badge = document.createElement("button");
+    badge.id = "profile-badge";
+    badge.className = "btn";
+    badge.style.padding = "6px 12px";
+    badge.style.fontSize = "12.5px";
+    badge.onclick = () => {
+      if(!confirm("Changer de profil ? (ta progression actuelle est sauvegardée)")) return;
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.getElementById("view-profile").classList.add("active");
+      renderProfileScreen();
+    };
+    document.querySelector("header nav").appendChild(badge);
+  }
+  badge.textContent = "👤 " + (CURRENT_PROFILE || "?");
+}
 
-  { id:"calc-micro-03", courseId:"micro", difficulty:"moyen",
-    q:"Ce calcul de coût moyen est-il correct ?",
-    calc: "CT = 700 €\nQ = 20 unités\nCTM = 700 / 20 = 35 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "CTM = CT/Q = 35 €. Correct." },
+document.getElementById("btn-create-profile").onclick = createProfile;
+document.getElementById("new-profile-name").addEventListener("keydown", e => {
+  if(e.key === "Enter") createProfile();
+});
 
-  { id:"calc-micro-04", courseId:"micro", difficulty:"moyen",
-    q:"Ce calcul de profit est-il correct ?",
-    calc: "RT = 500 €\nCT = 700 €\nProfit = 500 − 700 = +200 €",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "Profit = RT − CT = 500 − 700 = −200 € (perte). Erreur de signe." },
+/* =========================================================
+   6. ACCUEIL
+   ========================================================= */
+function toggleCourse(id){
+  if(selectedCourses.has(id)){
+    selectedCourses.delete(id);
+    delete selectedChapters[id];
+  } else {
+    selectedCourses.add(id);
+    selectedChapters[id] = [];
+  }
+  renderHome();
+}
 
-  { id:"calc-micro-05", courseId:"micro", difficulty:"moyen",
-    q:"Ce calcul d'élasticité-prix est-il correct ?",
-    calc: "Prix : 10 € → 12 €  (+20 %)\nQuantité : 100 → 85  (−15 %)\nÉlasticité = 20 / 15 = 1,33",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "Élasticité = −15 % / +20 % = −0,75. On divise le % de la quantité par celui du prix." },
+function toggleChapter(courseId, chapId){
+  const arr = selectedChapters[courseId] || [];
+  const i = arr.indexOf(chapId);
+  if(i === -1) arr.push(chapId); else arr.splice(i,1);
+  selectedChapters[courseId] = arr;
+  renderHome();
+}
 
-  { id:"calc-micro-06", courseId:"micro", difficulty:"moyen",
-    q:"Ce calcul d'élasticité-revenu est-il correct ?",
-    calc: "Revenu : 2 000 → 2 200  (+10 %)\nConsommation : 10 → 12  (+20 %)\nÉlasticité-revenu = 20 / 10 = 2",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Élasticité-revenu = 2. Bien de luxe." },
+function renderHome(){
+  const list = document.getElementById("course-list");
+  list.innerHTML = "";
 
-  { id:"calc-micro-07", courseId:"micro", difficulty:"difficile",
-    q:"Ce calcul d'élasticité-prix croisée est-il correct ?",
-    calc: "Prix du café +20 %\nQuantité de thé +10 %\nÉlasticité croisée = 10 / 20 = 0,5",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "Élasticité croisée = +0,5 > 0 → biens substituables. Correct." },
+  if(!COURSES.length){
+    list.innerHTML = `<div class="empty">Aucun cours chargé. Vérifie les fichiers dans /data/.</div>`;
+    updateStartButton();
+    return;
+  }
 
-  { id:"calc-micro-08", courseId:"micro", difficulty:"difficile",
-    q:"Cette interprétation est-elle correcte ?",
-    calc: "Élasticité-prix croisée = −0,25\nConclusion : les biens sont substituables",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 1,
-    explanation: "Une élasticité croisée NÉGATIVE signifie que les biens sont COMPLÉMENTAIRES, pas substituables." },
+  COURSES.forEach(course => {
+    const st = courseStats(course.id);
+    const sel = selectedCourses.has(course.id);
+    const card = document.createElement("div");
+    card.className = "course-card" + (sel ? " selected" : "");
 
-  { id:"calc-micro-09", courseId:"micro", difficulty:"difficile",
-    q:"Ce calcul de productivité marginale est-il correct ?",
-    calc: "L = 5 → Q = 100\nL = 6 → Q = 112\nPmL = 112 − 100 = 12",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "PmL = ΔQ/ΔL = 12/1 = 12. Correct." },
+    const chapsHtml = course.chapters.map(ch => {
+      const on = (selectedChapters[course.id] || []).includes(ch.id);
+      return `<button class="chip${on?" on":""}" data-chap="${ch.id}">${escapeHtml(ch.name)}</button>`;
+    }).join("");
 
-  { id:"calc-micro-10", courseId:"micro", difficulty:"difficile",
-    q:"Ce calcul de TMST est-il correct ?",
-    calc: "PmL = 12, PmK = 4\nTMST = PmL / PmK = 12 / 4 = 3",
-    choices: ["✓ Correct", "✗ Incorrect"],
-    answer: 0,
-    explanation: "TMST = PmL / PmK. Correct." }
+    card.innerHTML = `
+      <div class="course-head">
+        <div class="course-icon">${course.icon}</div>
+        <div class="course-info">
+          <div class="course-name">${escapeHtml(course.name)}</div>
+          <div class="course-sub">${course.questions.length} questions${
+            st.rate !== null ? " · " + Math.round(st.rate*100) + "% de réussite" : "" }${
+            st.toReview ? " · " + st.toReview + " à revoir" : "" }</div>
+        </div>
+        <div class="check">${sel ? "✓" : ""}</div>
+      </div>
+      <div class="chapters">${chapsHtml}</div>
+    `;
 
-);
+    card.querySelector(".course-head").onclick = () => toggleCourse(course.id);
+    card.querySelectorAll(".chip").forEach(chip => {
+      chip.onclick = (e) => { e.stopPropagation(); toggleChapter(course.id, chip.dataset.chap); };
+    });
+
+    list.appendChild(card);
+  });
+
+  updateStartButton();
+}
+
+function questionCountPreview(){
+  const perCourse = getPerCourse();
+  let total = 0;
+  selectedCourses.forEach(cid => {
+    const course = COURSES.find(c => c.id === cid);
+    const chaps = selectedChapters[cid] || [];
+    let pool = course.questions.filter(q => !chaps.length || chaps.includes(q.chapter));
+    if(currentDiff === "facile") pool = pool.filter(q => q.difficulty !== "difficile");
+    if(!pool.length) pool = course.questions;
+    total += Math.min(perCourse, pool.length);
+  });
+  return total;
+}
+
+function updateStartButton(){
+  const btn = document.getElementById("btn-start");
+  if(!selectedCourses.size){
+    btn.disabled = true;
+    btn.textContent = "Sélectionne au moins un cours";
+    return;
+  }
+  btn.disabled = false;
+  const n = questionCountPreview();
+  btn.textContent = `Commencer · ${n} question${n>1?"s":""}`;
+}
+
+document.getElementById("mode-seg").onclick = e => {
+  const b = e.target.closest("button"); if(!b) return;
+  currentMode = b.dataset.mode;
+  document.querySelectorAll("#mode-seg button").forEach(x => x.classList.toggle("active", x === b));
+  updateStartButton();
+};
+document.getElementById("diff-seg").onclick = e => {
+  const b = e.target.closest("button"); if(!b) return;
+  currentDiff = b.dataset.diff;
+  document.querySelectorAll("#diff-seg button").forEach(x => x.classList.toggle("active", x === b));
+  updateStartButton();
+};
+
+/* =========================================================
+   7. LANCEMENT D'UNE SESSION
+   ========================================================= */
+document.getElementById("btn-start").onclick = () => {
+  const courses = [...selectedCourses];
+  if(!courses.length) return;
+
+  const perCourse = getPerCourse();
+  const nCalc = getCalculsPerSubject();
+  const queue = [];
+
+  courses.forEach(cid => {
+    const course = COURSES.find(c => c.id === cid);
+    const chaps = selectedChapters[cid] || [];
+    let pool = course.questions.filter(q => !chaps.length || chaps.includes(q.chapter));
+    if(currentDiff === "facile") pool = pool.filter(q => q.difficulty !== "difficile");
+    if(!pool.length) pool = course.questions.slice();
+
+    // En mode test : réserver nCalc places pour les questions de calcul
+    const nNormal = Math.max(0, perCourse - nCalc);
+    const normalSelected = weightedSample(pool, Math.min(nNormal, pool.length));
+    normalSelected.forEach(q => queue.push({ courseId: cid, q }));
+
+    // Injecter les calculs pour cette matière
+    if(nCalc > 0){
+      const calcPool = CALCULS.filter(c =>
+        c.courseId === cid &&
+        (currentDiff === "facile" ? c.difficulty === "facile" :
+         currentDiff === "moyen"  ? c.difficulty !== "difficile" :
+         true)
+      );
+      const calcSelected = weightedSample(calcPool, Math.min(nCalc, calcPool.length));
+      calcSelected.forEach(q => queue.push({ courseId: cid, q }));
+    }
+  });
+
+  launchQuiz(shuffle(queue), { courses, mode:currentMode, difficulty:currentDiff });
+};
+
+function launchQuiz(queue, config){
+  quiz = {
+    queue,
+    index: 0,
+    answers: [],
+    startedAt: Date.now(),
+    config,
+    timerId: null,
+    timeLeft: 0,
+    locked: false,
+    finished: false,
+    questionStart: Date.now()
+  };
+  show("quiz");
+  renderQuestion();
+}
+
+/* =========================================================
+   8. AFFICHAGE D'UNE QUESTION
+   ========================================================= */
+function renderQuestion(){
+  const item = quiz.queue[quiz.index];
+  const q = item.q;
+  const course = COURSES.find(c => c.id === item.courseId);
+  const chap = course.chapters.find(c => c.id === q.chapter);
+
+  quiz.locked = false;
+  quiz.questionStart = Date.now();
+
+  document.getElementById("quiz-bar").style.width =
+    (quiz.index / quiz.queue.length * 100) + "%";
+  document.getElementById("quiz-counter").textContent =
+    `Question ${quiz.index + 1} / ${quiz.queue.length}`;
+  document.getElementById("quiz-course").textContent = course.icon + " " + course.name;
+
+  // Chapitre : pour les calculs, on affiche "Calculs"
+  const chapLabel = q.type === "verif" ? "🧮 Calcul à vérifier" : (chap ? chap.name : "");
+  document.getElementById("q-chapter").textContent = chapLabel;
+  document.getElementById("q-text").textContent = q.q;
+
+  // Rendu du calcul (uniquement pour les questions "verif")
+  const extraBox = document.getElementById("q-extra");
+  extraBox.innerHTML = "";
+  const isVerif = q.type === "verif" && q.calc;
+
+  if(isVerif){
+    const calcBox = document.createElement("div");
+    calcBox.className = "calc-box";
+    calcBox.innerHTML = `
+      <span class="verdict">${escapeHtml(q.verdict || "Vérifie ce calcul")}</span>
+      <pre>${escapeHtml(q.calc)}</pre>`;
+    extraBox.appendChild(calcBox);
+  }
+
+  // Choix
+  const container = document.getElementById("q-choices");
+  container.innerHTML = "";
+  container.className = "choices" + (isVerif ? " verif" : "");
+
+  pickDisplayChoices(q, quiz.config.difficulty).forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = c.text;
+    btn.dataset.index = c.index;
+    btn.onclick = () => answerQuestion(c.index, btn, q, item);
+    container.appendChild(btn);
+  });
+
+  const fb = document.getElementById("q-feedback");
+  fb.className = "feedback";
+  fb.innerHTML = "";
+  document.getElementById("btn-next").style.display = "none";
+
+  startTimer();
+}
+
+/* ---------- chrono ---------- */
+function updateTimerDisplay(){
+  const el = document.getElementById("quiz-timer");
+  el.textContent = "⏱ " + quiz.timeLeft + " s";
+  el.classList.toggle("danger", quiz.timeLeft <= 10);
+}
+
+function startTimer(){
+  clearInterval(quiz.timerId);
+  const t = getQuestionTime(quiz.config.difficulty);
+  const el = document.getElementById("quiz-timer");
+  el.classList.remove("danger");
+
+  if(!t){ el.textContent = "⏱ ∞"; return; }
+
+  quiz.timeLeft = t;
+  updateTimerDisplay();
+  quiz.timerId = setInterval(() => {
+    quiz.timeLeft--;
+    updateTimerDisplay();
+    if(quiz.timeLeft <= 0){
+      clearInterval(quiz.timerId);
+      if(!quiz.locked) timeUp();
+    }
+  }, 1000);
+}
+
+function timeUp(){
+  const item = quiz.queue[quiz.index];
+  quiz.locked = true;
+  clearInterval(quiz.timerId);
+
+  document.querySelectorAll("#q-choices .choice").forEach(btn => {
+    btn.disabled = true;
+    const i = Number(btn.dataset.index);
+    if(i === item.q.answer) btn.classList.add("correct");
+    else btn.classList.add("dim");
+  });
+
+  recordAnswer(item.q.id, false, getQuestionTime(quiz.config.difficulty));
+  quiz.answers.push({
+    qid: item.q.id, courseId: item.courseId, correct: false,
+    chosen: null, timedOut: true
+  });
+
+  const fb = document.getElementById("q-feedback");
+  fb.className = "feedback ko show";
+  fb.innerHTML = `<b>⏰ Temps écoulé !</b>
+    La bonne réponse était : <strong>${escapeHtml(choiceText(item.q.choices[item.q.answer]))}</strong>
+    <div class="expl">${escapeHtml(item.q.explanation || "")}</div>`;
+
+  document.getElementById("btn-next").style.display = "block";
+}
+
+/* ---------- réponse ---------- */
+function answerQuestion(choiceIndex, btn, q, item){
+  if(quiz.locked) return;
+  quiz.locked = true;
+  clearInterval(quiz.timerId);
+
+  const correct = choiceIndex === q.answer;
+  const totalTime = getQuestionTime(quiz.config.difficulty);
+  const elapsed = totalTime ? (totalTime - quiz.timeLeft) : Math.round((Date.now() - quiz.questionStart)/1000);
+
+  document.querySelectorAll("#q-choices .choice").forEach(b => {
+    b.disabled = true;
+    const i = Number(b.dataset.index);
+    if(i === q.answer) b.classList.add("correct");
+    else if(i === choiceIndex) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  recordAnswer(q.id, correct, elapsed);
+  quiz.answers.push({ qid:q.id, courseId:item.courseId, correct, chosen:choiceIndex, timedOut:false });
+
+  const fb = document.getElementById("q-feedback");
+  fb.className = "feedback show " + (correct ? "ok" : "ko");
+  fb.innerHTML = correct
+    ? `<b>✅ Correct !</b><div class="expl">${escapeHtml(q.explanation || "")}</div>`
+    : `<b>❌ Raté.</b> La bonne réponse était : <strong>${escapeHtml(choiceText(q.choices[q.answer]))}</strong>
+       <div class="expl">${escapeHtml(q.explanation || "")}</div>`;
+
+  document.getElementById("btn-next").style.display = "block";
+}
+
+/* ---------- enregistrement ---------- */
+function recordAnswer(qid, correct, timeSpent){
+  const s = state.questions[qid] || (state.questions[qid] = {
+    seen:0, correct:0, wrong:0, box:0, streak:0,
+    lastResult:null, lastSeen:null, history:[]
+  });
+
+  s.seen++;
+  if(correct){
+    s.correct++;
+    s.streak++;
+    s.box = Math.min(5, s.box + 1);
+  } else {
+    s.wrong++;
+    s.streak = 0;
+    s.box = 0;
+  }
+  s.lastResult = correct;
+  s.lastSeen = Date.now();
+  s.history.push(correct ? 1 : 0);
+  if(s.history.length > 60) s.history.shift();
+
+  saveState();
+}
+
+document.getElementById("btn-next").onclick = () => {
+  quiz.index++;
+  if(quiz.index >= quiz.queue.length) endQuiz();
+  else renderQuestion();
+};
+
+document.getElementById("btn-quit").onclick = () => {
+  if(!confirm("Quitter la session ? Ta progression déjà enregistrée est conservée.")) return;
+  clearInterval(quiz.timerId);
+  quiz = null;
+  show("home");
+  renderHome();
+};
+
+/* =========================================================
+   9. FIN DE SESSION
+   ========================================================= */
+function endQuiz(){
+  clearInterval(quiz.timerId);
+  quiz.finished = true;
+
+  const correct = quiz.answers.filter(a => a.correct).length;
+  const total = quiz.queue.length;
+  const duration = Math.round((Date.now() - quiz.startedAt)/1000);
+
+  state.sessions.push({
+    date: Date.now(),
+    courses: quiz.config.courses.slice(),
+    mode: quiz.config.mode,
+    difficulty: quiz.config.difficulty,
+    total, correct, duration
+  });
+  saveState();
+
+  renderResults(correct, total, duration);
+  show("result");
+}
+
+function renderResults(correct, total, duration){
+  const pct = total ? correct/total : 0;
+
+  const emoji = pct >= 0.9 ? "🏆" : pct >= 0.7 ? "🎉" : pct >= 0.5 ? "👍" : "💪";
+  document.getElementById("res-emoji").textContent = emoji;
+  document.getElementById("res-score").textContent = `${correct} / ${total}`;
+
+  const modeTxt = quiz.config.mode === "rapide" ? "Rapide" :
+                  quiz.config.mode === "long"   ? "Long" :
+                  quiz.config.mode === "test"   ? "Test" : "Erreurs";
+
+  document.getElementById("res-label").textContent =
+    `${Math.round(pct*100)} % de réussite · ${duration} s · ${modeTxt} · ${DIFFICULTIES[quiz.config.difficulty].label}`;
+
+  const byCourse = {};
+  quiz.answers.forEach(a => {
+    byCourse[a.courseId] = byCourse[a.courseId] || { c:0, t:0 };
+    byCourse[a.courseId].t++;
+    if(a.correct) byCourse[a.courseId].c++;
+  });
+
+  const rc = document.getElementById("res-courses");
+  rc.innerHTML = "";
+  Object.entries(byCourse).forEach(([cid, d]) => {
+    const course = COURSES.find(c => c.id === cid);
+    const p = d.t ? d.c/d.t : 0;
+    const color = p >= 0.7 ? "var(--green)" : p >= 0.4 ? "var(--amber)" : "var(--red)";
+    const row = document.createElement("div");
+    row.className = "stat-row";
+    row.innerHTML = `
+      <span class="name">${course.icon} ${escapeHtml(course.name)}</span>
+      <span style="color:var(--muted);font-size:13px">${d.c}/${d.t}</span>
+      <div class="bar-mini"><div style="width:${p*100}%;background:${color}"></div></div>
+      <span style="font-weight:700;width:44px;text-align:right">${Math.round(p*100)}%</span>`;
+    rc.appendChild(row);
+  });
+
+  const wrong = quiz.answers.filter(a => !a.correct);
+  const panel = document.getElementById("res-missed-panel");
+  const container = document.getElementById("res-missed");
+  container.innerHTML = "";
+
+  if(!wrong.length){
+    panel.style.display = "none";
+  } else {
+    panel.style.display = "block";
+    wrong.forEach(a => {
+      const { q, course } = QINDEX[a.qid];
+      const div = document.createElement("div");
+      div.className = "miss-item";
+
+      const chosenTxt = a.timedOut
+        ? "<em>⏰ pas de réponse (temps écoulé)</em>"
+        : escapeHtml(choiceText(q.choices[a.chosen]));
+
+      const calcHtml = q.type === "verif" && q.calc
+        ? `<div class="e" style="font-family:monospace;white-space:pre-wrap;background:rgba(0,0,0,.2);padding:8px;border-radius:6px;margin:6px 0;">${escapeHtml(q.calc)}</div>`
+        : "";
+
+      div.innerHTML = `
+        <div class="q">${course.icon} ${escapeHtml(q.q)}</div>
+        ${calcHtml}
+        <div class="a bad">Ta réponse : ${chosenTxt}</div>
+        <div class="a">✔ Bonne réponse : ${escapeHtml(choiceText(q.choices[q.answer]))}</div>
+        ${q.explanation ? `<div class="e">${escapeHtml(q.explanation)}</div>` : ""}`;
+      container.appendChild(div);
+    });
+  }
+
+  const btnRetry = document.getElementById("btn-retry-wrong");
+  btnRetry.style.display = wrong.length ? "inline-block" : "none";
+  btnRetry.onclick = () => {
+    const queue = wrong.map(a => ({ courseId:a.courseId, q:QINDEX[a.qid].q }));
+    launchQuiz(shuffle(queue), {
+      courses: quiz.config.courses,
+      mode: "erreurs",
+      difficulty: quiz.config.difficulty
+    });
+  };
+
+  document.getElementById("btn-new-session").onclick = () => {
+    quiz = null;
+    show("home");
+    renderHome();
+  };
+}
+
+/* =========================================================
+   10. STATISTIQUES
+   ========================================================= */
+function courseStats(courseId){
+  const course = COURSES.find(c => c.id === courseId);
+  let seen = 0, correct = 0, toReview = 0;
+
+  // Questions du cours
+  course.questions.forEach(q => {
+    const s = state.questions[q.id];
+    if(!s || !s.seen) return;
+    seen += s.seen;
+    correct += s.correct;
+    if(s.lastResult === false) toReview++;
+  });
+
+  // Calculs associés
+  CALCULS.filter(c => c.courseId === courseId).forEach(q => {
+    const s = state.questions[q.id];
+    if(!s || !s.seen) return;
+    seen += s.seen;
+    correct += s.correct;
+    if(s.lastResult === false) toReview++;
+  });
+
+  return { seen, correct, toReview, rate: seen ? correct/seen : null };
+}
+
+function globalStats(){
+  let seen = 0, correct = 0;
+  Object.values(state.questions).forEach(s => { seen += s.seen; correct += s.correct; });
+  const totalTime = state.sessions.reduce((a,s) => a + (s.duration || 0), 0);
+  return { seen, correct, rate: seen ? correct/seen : null, totalTime };
+}
+
+function renderStats(){
+  const g = globalStats();
+
+  document.getElementById("kpis").innerHTML = `
+    <div class="kpi">
+      <div class="v" style="color:${g.rate===null?'var(--muted)':g.rate>=0.7?'var(--green)':g.rate>=0.4?'var(--amber)':'var(--red)'}">
+        ${g.rate === null ? "—" : Math.round(g.rate*100) + " %"}
+      </div>
+      <div class="l">Moyenne globale</div>
+    </div>
+    <div class="kpi"><div class="v">${g.correct} / ${g.seen}</div><div class="l">Bonnes réponses</div></div>
+    <div class="kpi"><div class="v">${state.sessions.length}</div><div class="l">Sessions</div></div>
+    <div class="kpi"><div class="v">${Math.round(g.totalTime/60)} min</div><div class="l">Temps total</div></div>`;
+
+  const sc = document.getElementById("stats-courses");
+  sc.innerHTML = "";
+  COURSES.forEach(course => {
+    const st = courseStats(course.id);
+    const p = st.rate;
+    const color = p === null ? "var(--muted)" : p >= 0.7 ? "var(--green)" : p >= 0.4 ? "var(--amber)" : "var(--red)";
+    const row = document.createElement("div");
+    row.className = "stat-row";
+    row.innerHTML = `
+      <span class="name">${course.icon} ${escapeHtml(course.name)}</span>
+      <span style="color:var(--muted);font-size:12.5px">${st.seen} rép.</span>
+      <div class="bar-mini"><div style="width:${p===null?0:p*100}%;background:${color}"></div></div>
+      <span style="font-weight:700;width:44px;text-align:right">${p===null?"—":Math.round(p*100)+"%"}</span>`;
+    sc.appendChild(row);
+  });
+
+  const sr = document.getElementById("stats-review");
+  const toReview = [];
+
+  const pushIfFailed = (q, course) => {
+    const s = state.questions[q.id];
+    if(s && s.lastResult === false) toReview.push({ course, q, s });
+  };
+  COURSES.forEach(course => {
+    course.questions.forEach(q => pushIfFailed(q, course));
+    CALCULS.filter(c => c.courseId === course.id).forEach(q => pushIfFailed(q, course));
+  });
+
+  toReview.sort((a,b) => b.s.wrong - a.s.wrong);
+
+  if(!toReview.length){
+    sr.innerHTML = `<div class="empty">Aucune question à revoir pour l'instant 🎉</div>`;
+  } else {
+    sr.innerHTML = toReview.slice(0, 40).map(({course, q, s}) => {
+      const calcHtml = q.type === "verif" && q.calc
+        ? `<div class="e" style="font-family:monospace;white-space:pre-wrap;">${escapeHtml(q.calc)}</div>`
+        : "";
+      return `
+      <div class="miss-item">
+        <div class="q">${course.icon} ${escapeHtml(q.q)}</div>
+        ${calcHtml}
+        <div class="a">✔ ${escapeHtml(choiceText(q.choices[q.answer]))}</div>
+        <div class="e">${s.wrong} échec${s.wrong>1?"s":""} · ${s.correct} réussite${s.correct>1?"s":""} · palier ${s.box}/5</div>
+      </div>`;
+    }).join("");
+  }
+
+  const sh = document.getElementById("stats-history");
+  if(!state.sessions.length){
+    sh.innerHTML = `<div class="empty">Aucune session enregistrée.</div>`;
+  } else {
+    const rows = state.sessions.slice().reverse().slice(0, 50).map(s => {
+      const names = s.courses.map(id => {
+        const c = COURSES.find(x => x.id === id);
+        return c ? c.icon : "?";
+      }).join(" ");
+      const p = s.total ? Math.round(s.correct/s.total*100) : 0;
+      const color = p >= 70 ? "var(--green)" : p >= 40 ? "var(--amber)" : "var(--red)";
+      const modeTxt = s.mode === "rapide" ? "Rapide" :
+                      s.mode === "long"   ? "Long" :
+                      s.mode === "test"   ? "Test" : "Erreurs";
+      return `<tr>
+        <td>${new Date(s.date).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"2-digit"})}
+            <span style="color:var(--muted)"> ${new Date(s.date).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span></td>
+        <td>${names}</td>
+        <td>${modeTxt}</td>
+        <td>${DIFFICULTIES[s.difficulty] ? DIFFICULTIES[s.difficulty].label : s.difficulty}</td>
+        <td style="color:${color};font-weight:700">${s.correct}/${s.total} (${p}%)</td>
+      </tr>`;
+    }).join("");
+    sh.innerHTML = `<table>
+      <thead><tr><th>Date</th><th>Cours</th><th>Mode</th><th>Difficulté</th><th>Score</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  }
+}
+
+/* =========================================================
+   11. DONNÉES / EXPORT / IMPORT
+   ========================================================= */
+function renderData(){
+  const g = globalStats();
+  const size = new Blob([JSON.stringify(state)]).size;
+  document.getElementById("data-info").innerHTML = `
+    Profil : <strong>${escapeHtml(CURRENT_PROFILE || "?")}</strong><br>
+    Première session : <strong>${new Date(state.createdAt).toLocaleDateString("fr-FR")}</strong><br>
+    Questions suivies : <strong>${Object.keys(state.questions).length}</strong> · 
+    Sessions : <strong>${state.sessions.length}</strong> · 
+    Taille du fichier : <strong>${(size/1024).toFixed(1)} Ko</strong>`;
+}
+
+document.getElementById("btn-export").onclick = () => {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const d = new Date();
+  const profileSlug = (CURRENT_PROFILE || "profil").replace(/[^a-zA-Z0-9]/g, "_");
+  a.href = url;
+  a.download = `revisqcm-${profileSlug}-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+document.getElementById("btn-import").onclick = () => {
+  document.getElementById("file-input").click();
+};
+
+document.getElementById("file-input").onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const imported = JSON.parse(reader.result);
+      if(!imported.questions || !imported.sessions) throw new Error("format invalide");
+
+      const choice = confirm(
+        "Remplacer ta progression actuelle par ce fichier ?\n\n" +
+        "OK = remplacer\n" +
+        "Annuler = fusionner avec l'existant"
+      );
+
+      if(choice){
+        state = Object.assign(defaultState(), imported);
+      } else {
+        Object.entries(imported.questions || {}).forEach(([qid, s]) => {
+          const cur = state.questions[qid];
+          if(!cur){
+            state.questions[qid] = s;
+          } else {
+            cur.seen    += s.seen;
+            cur.correct += s.correct;
+            cur.wrong   += s.wrong;
+            cur.box      = Math.max(cur.box, s.box);
+            if(s.lastSeen > (cur.lastSeen || 0)){
+              cur.lastResult = s.lastResult;
+              cur.lastSeen   = s.lastSeen;
+            }
+            cur.history = (cur.history || []).concat(s.history || []).slice(-60);
+          }
+        });
+        state.sessions = (state.sessions || []).concat(imported.sessions || []);
+        state.sessions.sort((a,b) => a.date - b.date);
+      }
+
+      saveState();
+      renderHome();
+      renderData();
+      alert("Import réussi ✓");
+    }catch(err){
+      alert("Fichier illisible : " + err.message);
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+};
+
+document.getElementById("btn-reset").onclick = () => {
+  if(!confirm(`Effacer TOUTE la progression du profil "${CURRENT_PROFILE}" ?\n\nCette action est irréversible.`)) return;
+  if(!confirm("Vraiment sûr ? Pense à exporter avant.")) return;
+  state = defaultState();
+  saveState();
+  renderHome();
+  renderData();
+  renderStats();
+  alert("Progression réinitialisée.");
+};
+
+/* =========================================================
+   12. RACCOURCIS CLAVIER
+   ========================================================= */
+document.addEventListener("keydown", e => {
+  if(!document.getElementById("view-quiz").classList.contains("active") || !quiz) return;
+
+  if(e.key === "Enter" && document.getElementById("btn-next").style.display !== "none"){
+    document.getElementById("btn-next").click();
+    return;
+  }
+  const n = parseInt(e.key, 10);
+  if(n >= 1 && n <= 9){
+    const btns = document.querySelectorAll("#q-choices .choice");
+    if(btns[n-1] && !btns[n-1].disabled) btns[n-1].click();
+  }
+});
+
+/* =========================================================
+   13. DÉMARRAGE
+   ========================================================= */
+(function init(){
+  // Support ?user=XXX dans l'URL pour pré-remplir
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlUser = urlParams.get("user");
+  if(urlUser && !CURRENT_PROFILE){
+    CURRENT_PROFILE = urlUser;
+    localStorage.setItem("revisqcm_current_profile", urlUser);
+    state = loadState();
+  }
+
+  if(!CURRENT_PROFILE){
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.getElementById("view-profile").classList.add("active");
+    renderProfileScreen();
+  } else {
+    if(COURSES.length){
+      selectedCourses.add(COURSES[0].id);
+      selectedChapters[COURSES[0].id] = [];
+    }
+    renderHome();
+    renderData();
+    updateProfileBadge();
+  }
+})();
+
+/* Service Worker (PWA) */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
