@@ -1,174 +1,162 @@
 /* =========================================================
    CALCULS À VÉRIFIER
-   Structure :
-   {
-     id, courseId, difficulty,
-     q   : énoncé ("Cette égalité est-elle correcte ?"),
-     calc: le calcul à vérifier (multi-lignes avec \n),
-     choices: ["✓ Correct", "✗ Incorrect"],
-     answer : 0 (Correct) ou 1 (Incorrect),
-     explanation
-   }
+   Chaque question a OBLIGATOIREMENT type:"verif" + calc:"..."
    ========================================================= */
 window.RQ_CALCULS = window.RQ_CALCULS || [];
 
 window.RQ_CALCULS.push(
 
-  /* =====================================================
-     📐 MATHÉMATIQUES
-     ===================================================== */
-  { id:"calc-math-01", courseId:"math", difficulty:"facile",
+  /* ============ 📐 MATHÉMATIQUES ============ */
+  { id:"calc-math-01", type:"verif", courseId:"math", chapter:"calculs", difficulty:"facile",
     q:"Cette égalité est-elle correcte ?",
     calc: "3 × 7 = 21",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "3 × 7 = 21. Correct." },
 
-  { id:"calc-math-02", courseId:"math", difficulty:"facile",
+  { id:"calc-math-02", type:"verif", courseId:"math", chapter:"calculs", difficulty:"facile",
     q:"Cette égalité est-elle correcte ?",
     calc: "15 − 8 = 6",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
     explanation: "15 − 8 = 7, pas 6." },
 
-  { id:"calc-math-03", courseId:"math", difficulty:"facile",
+  { id:"calc-math-03", type:"verif", courseId:"math", chapter:"calculs", difficulty:"facile",
     q:"Cette résolution est-elle correcte ?",
     calc: "x + 5 = 12\nx = 12 + 5\nx = 17",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
     explanation: "Pour isoler x, il faut soustraire 5 : x = 12 − 5 = 7." },
 
-  { id:"calc-math-04", courseId:"math", difficulty:"moyen",
+  { id:"calc-math-04", type:"verif", courseId:"math", chapter:"calculs", difficulty:"moyen",
     q:"Cette résolution est-elle correcte ?",
     calc: "2x + 3 = 11\n2x = 8\nx = 4",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "2x = 11 − 3 = 8, donc x = 4. Correct." },
 
-  { id:"calc-math-05", courseId:"math", difficulty:"moyen",
+  { id:"calc-math-05", type:"verif", courseId:"math", chapter:"calculs", difficulty:"moyen",
     q:"Cette résolution est-elle correcte ?",
     calc: "3x − 5 = 10\n3x = 5\nx = 5/3",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
     explanation: "3x = 10 + 5 = 15, donc x = 5. Erreur de signe." },
 
-  { id:"calc-math-06", courseId:"math", difficulty:"moyen",
+  { id:"calc-math-06", type:"verif", courseId:"math", chapter:"calculs", difficulty:"moyen",
     q:"Le calcul du discriminant est-il correct ?",
     calc: "x² − 4x + 3 = 0\na = 1, b = −4, c = 3\nΔ = b² − 4ac\nΔ = 16 − 12\nΔ = 4",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "Δ = 4. Correct." },
 
-  { id:"calc-math-07", courseId:"math", difficulty:"moyen",
+  { id:"calc-math-07", type:"verif", courseId:"math", chapter:"calculs", difficulty:"moyen",
     q:"Cette dérivée est-elle correcte ?",
     calc: "f(x) = 4x³ − 5x² + 2x − 7\nf'(x) = 12x² − 10x + 2",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "On dérive terme à terme. Correct." },
 
-  { id:"calc-math-08", courseId:"math", difficulty:"moyen",
+  { id:"calc-math-08", type:"verif", courseId:"math", chapter:"calculs", difficulty:"moyen",
     q:"Cette dérivée est-elle correcte ?",
     calc: "f(x) = x³\nf'(x) = x²",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
     explanation: "La dérivée de x³ est 3x², pas x²." },
 
-  { id:"calc-math-09", courseId:"math", difficulty:"difficile",
+  { id:"calc-math-09", type:"verif", courseId:"math", chapter:"calculs", difficulty:"difficile",
     q:"Cette dérivée composée est-elle correcte ?",
     calc: "f(x) = (3x + 2)⁵\nf'(x) = 15(3x + 2)⁴",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "(u⁵)' = 5u⁴·u' = 5(3x+2)⁴ × 3 = 15(3x+2)⁴. Correct." },
+    explanation: "(u⁵)' = 5u⁴·u' = 15(3x+2)⁴. Correct." },
 
-  { id:"calc-math-10", courseId:"math", difficulty:"difficile",
+  { id:"calc-math-10", type:"verif", courseId:"math", chapter:"calculs", difficulty:"difficile",
     q:"Cette dérivée exponentielle est-elle correcte ?",
     calc: "f(x) = e^(2x)\nf'(x) = e^(2x)",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
     explanation: "(e^u)' = u'·e^u, donc f'(x) = 2·e^(2x)." },
 
-  { id:"calc-math-11", courseId:"math", difficulty:"difficile",
+  { id:"calc-math-11", type:"verif", courseId:"math", chapter:"calculs", difficulty:"difficile",
     q:"Cette limite est-elle correcte ?",
     calc: "lim(x→+∞) (3x² − 4x + 1)/(2x² + 5)\n= 3/2",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "Même degré en haut et en bas → limite = rapport des coefficients dominants = 3/2. Correct." },
+    explanation: "Même degré → limite = 3/2. Correct." },
 
-  { id:"calc-math-12", courseId:"math", difficulty:"difficile",
+  { id:"calc-math-12", type:"verif", courseId:"math", chapter:"calculs", difficulty:"difficile",
     q:"Cette dérivée par quotient est-elle correcte ?",
     calc: "f(x) = (x² + 1)/x\nf'(x) = 1 − 1/x²",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "En simplifiant f(x) = x + 1/x, on a f'(x) = 1 − 1/x². Correct." },
+    explanation: "En simplifiant f(x) = x + 1/x, f'(x) = 1 − 1/x². Correct." },
 
 
-  /* =====================================================
-     🧾 COMPTABILITÉ
-     ===================================================== */
-  { id:"calc-compta-01", courseId:"compta", difficulty:"facile",
+  /* ============ 🧾 COMPTABILITÉ ============ */
+  { id:"calc-compta-01", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"facile",
     q:"Ce calcul de TVA est-il correct ?",
     calc: "Prix HT = 100 €\nTVA 20 %\nPrix TTC = 100 × 1,20 = 120 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "TTC = HT × (1 + taux). Correct." },
 
-  { id:"calc-compta-02", courseId:"compta", difficulty:"facile",
+  { id:"calc-compta-02", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"facile",
     q:"Ce calcul de remise est-il correct ?",
     calc: "Prix = 200 €\nRemise 15 %\nNouveau prix = 200 × 0,15 = 30 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
-    explanation: "30 € est le MONTANT de la remise, pas le nouveau prix. Bon calcul : 200 × 0,85 = 170 €." },
+    explanation: "30 € = montant de la remise. Bon calcul : 200 × 0,85 = 170 €." },
 
-  { id:"calc-compta-03", courseId:"compta", difficulty:"facile",
+  { id:"calc-compta-03", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"facile",
     q:"Ce calcul de marge est-il correct ?",
     calc: "PV HT = 500 €\nCoût d'achat HT = 242 €\nMarge = 500 − 242 = 258 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "Marge = PV HT − Coût d'achat HT = 258 €. Correct." },
+    explanation: "Marge = PV HT − Coût d'achat HT. Correct." },
 
-  { id:"calc-compta-04", courseId:"compta", difficulty:"moyen",
+  { id:"calc-compta-04", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de taux de marque est-il correct ?",
     calc: "Marge = 258 €\nPV HT = 500 €\nTaux de marque = 258 / 500 × 100 = 51,6 %",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "Taux de marque = Marge / PV HT × 100. Correct." },
 
-  { id:"calc-compta-05", courseId:"compta", difficulty:"moyen",
+  { id:"calc-compta-05", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de marge à partir du TTC est-il correct ?",
     calc: "PV TTC = 900 € (TVA 20 %)\nCoût d'achat HT = 500 €\nMarge = 900 − 500 = 400 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
-    explanation: "Il faut d'abord convertir le TTC en HT : 900 / 1,2 = 750 €, puis 750 − 500 = 250 €." },
+    explanation: "TTC → HT : 900 / 1,2 = 750, puis 750 − 500 = 250 €." },
 
-  { id:"calc-compta-06", courseId:"compta", difficulty:"moyen",
+  { id:"calc-compta-06", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de taux d'évolution est-il correct ?",
     calc: "CA N−1 = 1 100 €\nCA N = 1 358 €\nTaux = (1358 − 1100) / 1100 × 100 = 23,45 %",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "Formule correcte : (VA − VD) / VD × 100." },
+    explanation: "Formule correcte. Correct." },
 
-  { id:"calc-compta-07", courseId:"compta", difficulty:"moyen",
+  { id:"calc-compta-07", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de taux d'évolution est-il correct ?",
     calc: "CA N−1 = 1 000 €\nCA N = 1 200 €\nTaux = (1200 − 1000) / 1200 × 100 = 16,67 %",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
-    explanation: "Il faut diviser par la valeur de DÉPART (1000). Bon calcul : 200/1000 × 100 = 20 %." },
+    explanation: "Diviser par la valeur de DÉPART : 200/1000 × 100 = 20 %." },
 
-  { id:"calc-compta-08", courseId:"compta", difficulty:"difficile",
+  { id:"calc-compta-08", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"difficile",
     q:"Ce calcul de BFR est-il correct ?",
     calc: "Stocks = 50 000 €\nCréances clients = 30 000 €\nDettes fournisseurs = 20 000 €\nBFR = 50 000 + 30 000 − 20 000 = 60 000 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "BFR = Stocks + Créances − Dettes. Correct." },
 
-  { id:"calc-compta-09", courseId:"compta", difficulty:"difficile",
+  { id:"calc-compta-09", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"difficile",
     q:"Cette facture est-elle calculée correctement ?",
-    calc: "Brut HT = 500 €\nRemise 10 % = 50 €\nNet commercial = 450 €\nTVA 20 % = 450 × 0,20 = 90 €\nNet TTC = 540 €",
+    calc: "Brut HT = 500 €\nRemise 10 % = 50 €\nNet commercial = 450 €\nTVA 20 % = 90 €\nNet TTC = 540 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "Ordre correct : brut → remise → net commercial → TVA → TTC. Correct." },
+    explanation: "Ordre correct. Correct." },
 
-  { id:"calc-compta-10", courseId:"compta", difficulty:"difficile",
+  { id:"calc-compta-10", type:"verif", courseId:"compta", chapter:"calculs", difficulty:"difficile",
     q:"Ce calcul de taux de marge est-il correct ?",
     calc: "Marge = 300 €\nCoût d'achat HT = 500 €\nTaux de marge = 300 / 500 × 100 = 60 %",
     choices: ["✓ Correct", "✗ Incorrect"],
@@ -176,137 +164,133 @@ window.RQ_CALCULS.push(
     explanation: "Taux de marge = Marge / Coût d'achat HT. Correct." },
 
 
-  /* =====================================================
-     📊 MACROÉCONOMIE
-     ===================================================== */
-  { id:"calc-macro-01", courseId:"macro", difficulty:"facile",
+  /* ============ 📊 MACROÉCONOMIE ============ */
+  { id:"calc-macro-01", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"facile",
     q:"Ce calcul de PIB est-il correct ?",
     calc: "C = 1 000\nI = 200\nG = 300\nX − M = 50\nPIB = 1000 + 200 + 300 + 50 = 1 550",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "PIB = C + I + G + (X − M). Correct." },
 
-  { id:"calc-macro-02", courseId:"macro", difficulty:"facile",
+  { id:"calc-macro-02", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"facile",
     q:"Ce calcul de taux de chômage est-il correct ?",
     calc: "Chômeurs U = 3 000\nActifs L = 30 000\nu = 3 000 / 30 000 × 100 = 10 %",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "u = U/L. Correct." },
 
-  { id:"calc-macro-03", courseId:"macro", difficulty:"moyen",
+  { id:"calc-macro-03", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de taux de croissance est-il correct ?",
     calc: "PIB 2023 = 2 800\nPIB 2024 = 2 940\ng = (2940 − 2800) / 2800 × 100 = 5 %",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "g = ΔPIB / PIB initial × 100 = 140/2800 × 100 = 5 %. Correct." },
+    explanation: "g = 140/2800 × 100 = 5 %. Correct." },
 
-  { id:"calc-macro-04", courseId:"macro", difficulty:"moyen",
+  { id:"calc-macro-04", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de taux d'intérêt réel est-il correct ?",
-    calc: "i nominal = 5 %\nπ (inflation) = 2 %\ni réel = 5 + 2 = 7 %",
+    calc: "i nominal = 5 %\nπ = 2 %\ni réel = 5 + 2 = 7 %",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
-    explanation: "Taux réel = i nominal − π = 5 − 2 = 3 %. Erreur de signe." },
+    explanation: "i réel = i − π = 5 − 2 = 3 %. Erreur de signe." },
 
-  { id:"calc-macro-05", courseId:"macro", difficulty:"moyen",
+  { id:"calc-macro-05", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"moyen",
     q:"Cette capitalisation est-elle correcte ?",
     calc: "S0 = 1 000 €\ni = 5 %\nn = 3 ans\nS3 = 1000 × 1,05³ ≈ 1 157,63 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "Sn = S0(1+i)^n. Correct." },
 
-  { id:"calc-macro-06", courseId:"macro", difficulty:"moyen",
+  { id:"calc-macro-06", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"moyen",
     q:"Cette actualisation est-elle correcte ?",
     calc: "Sn = 1 000 € dans 2 ans\ni = 5 %\nS0 = 1000 / 1,05² ≈ 907,03 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "S0 = Sn/(1+i)^n. Correct." },
 
-  { id:"calc-macro-07", courseId:"macro", difficulty:"difficile",
+  { id:"calc-macro-07", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"difficile",
     q:"Ce calcul de la VAN est-il correct ?",
     calc: "Investissement = 100 000 €\nRevenus = 20 000 €/an sur 6 ans\ni = 5 %\nVA = 101 513 €\nVAN = 101 513 − 100 000 = 1 513 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "VAN = VA − I0 = 1 513 € > 0. Investissement rentable." },
+    explanation: "VAN = 1 513 € > 0. Correct." },
 
-  { id:"calc-macro-08", courseId:"macro", difficulty:"difficile",
-    q:"Ce calcul de fonction d'investissement est-il correct ?",
-    calc: "I = I0 − B·i\nI0 = 500, B = 50, i = 4\nI = 500 − 50 × 4 = 500 − 200 = 300",
+  { id:"calc-macro-08", type:"verif", courseId:"macro", chapter:"calculs", difficulty:"difficile",
+    q:"Ce calcul est-il correct ?",
+    calc: "I = I0 − B·i\nI0 = 500, B = 50, i = 4\nI = 500 − 50 × 4 = 300",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "I = I0 − B·i. Correct." },
+    explanation: "I = I0 − B·i = 300. Correct." },
 
 
-  /* =====================================================
-     🛒 MICROÉCONOMIE
-     ===================================================== */
-  { id:"calc-micro-01", courseId:"micro", difficulty:"facile",
+  /* ============ 🛒 MICROÉCONOMIE ============ */
+  { id:"calc-micro-01", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"facile",
     q:"Ce calcul de coût total est-il correct ?",
     calc: "CF = 500 €\nCV = 200 €\nCT = 500 + 200 = 700 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "CT = CF + CV. Correct." },
 
-  { id:"calc-micro-02", courseId:"micro", difficulty:"facile",
+  { id:"calc-micro-02", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"facile",
     q:"Ce calcul de recette totale est-il correct ?",
     calc: "P = 10 €\nQ = 50 unités\nRT = 10 × 50 = 500 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
     explanation: "RT = P × Q. Correct." },
 
-  { id:"calc-micro-03", courseId:"micro", difficulty:"moyen",
+  { id:"calc-micro-03", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de coût moyen est-il correct ?",
     calc: "CT = 700 €\nQ = 20 unités\nCTM = 700 / 20 = 35 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "CTM = CT/Q = 35 €. Correct." },
+    explanation: "CTM = CT/Q. Correct." },
 
-  { id:"calc-micro-04", courseId:"micro", difficulty:"moyen",
+  { id:"calc-micro-04", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul de profit est-il correct ?",
     calc: "RT = 500 €\nCT = 700 €\nProfit = 500 − 700 = +200 €",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
-    explanation: "Profit = RT − CT = 500 − 700 = −200 € (perte). Erreur de signe." },
+    explanation: "Profit = 500 − 700 = −200 € (perte). Erreur de signe." },
 
-  { id:"calc-micro-05", courseId:"micro", difficulty:"moyen",
+  { id:"calc-micro-05", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul d'élasticité-prix est-il correct ?",
     calc: "Prix : 10 € → 12 €  (+20 %)\nQuantité : 100 → 85  (−15 %)\nÉlasticité = 20 / 15 = 1,33",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
-    explanation: "Élasticité = −15 % / +20 % = −0,75. On divise le % de la quantité par celui du prix." },
+    explanation: "Élasticité = −15 % / +20 % = −0,75." },
 
-  { id:"calc-micro-06", courseId:"micro", difficulty:"moyen",
+  { id:"calc-micro-06", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"moyen",
     q:"Ce calcul d'élasticité-revenu est-il correct ?",
     calc: "Revenu : 2 000 → 2 200  (+10 %)\nConsommation : 10 → 12  (+20 %)\nÉlasticité-revenu = 20 / 10 = 2",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "Élasticité-revenu = 2. Bien de luxe." },
+    explanation: "Élasticité-revenu = 2. Correct." },
 
-  { id:"calc-micro-07", courseId:"micro", difficulty:"difficile",
+  { id:"calc-micro-07", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"difficile",
     q:"Ce calcul d'élasticité-prix croisée est-il correct ?",
     calc: "Prix du café +20 %\nQuantité de thé +10 %\nÉlasticité croisée = 10 / 20 = 0,5",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "Élasticité croisée = +0,5 > 0 → biens substituables. Correct." },
+    explanation: "Élasticité croisée = +0,5. Correct." },
 
-  { id:"calc-micro-08", courseId:"micro", difficulty:"difficile",
+  { id:"calc-micro-08", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"difficile",
     q:"Cette interprétation est-elle correcte ?",
     calc: "Élasticité-prix croisée = −0,25\nConclusion : les biens sont substituables",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 1,
-    explanation: "Une élasticité croisée NÉGATIVE signifie que les biens sont COMPLÉMENTAIRES, pas substituables." },
+    explanation: "Une élasticité croisée négative = biens COMPLÉMENTAIRES." },
 
-  { id:"calc-micro-09", courseId:"micro", difficulty:"difficile",
+  { id:"calc-micro-09", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"difficile",
     q:"Ce calcul de productivité marginale est-il correct ?",
     calc: "L = 5 → Q = 100\nL = 6 → Q = 112\nPmL = 112 − 100 = 12",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "PmL = ΔQ/ΔL = 12/1 = 12. Correct." },
+    explanation: "PmL = ΔQ/ΔL = 12. Correct." },
 
-  { id:"calc-micro-10", courseId:"micro", difficulty:"difficile",
+  { id:"calc-micro-10", type:"verif", courseId:"micro", chapter:"calculs", difficulty:"difficile",
     q:"Ce calcul de TMST est-il correct ?",
     calc: "PmL = 12, PmK = 4\nTMST = PmL / PmK = 12 / 4 = 3",
     choices: ["✓ Correct", "✗ Incorrect"],
     answer: 0,
-    explanation: "TMST = PmL / PmK. Correct." }
+    explanation: "TMST = PmL / PmK = 3. Correct." }
 
 );
