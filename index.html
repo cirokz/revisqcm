@@ -30,6 +30,7 @@
   header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
   .logo{font-size:20px;font-weight:800;letter-spacing:-.4px}
   .logo span{color:var(--accent)}
+  .logo small{font-size:10px;color:var(--muted);font-weight:500;margin-left:6px}
   nav{display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:12px;border:1px solid var(--border);align-items:center;flex-wrap:wrap}
   nav button{
     background:none;border:none;color:var(--muted);padding:8px 14px;border-radius:9px;
@@ -128,10 +129,10 @@
   .choice.wrong{background:rgba(239,68,68,.14);border-color:var(--red);color:#ff9b9b}
   .choice.dim{opacity:.45}
 
-  /* --- Boîte de calcul (type verif) --- */
+  /* --- Boîte de calcul (questions "verif") --- */
   .calc-box{
-    background:linear-gradient(135deg, rgba(108,140,255,.12), rgba(143,108,255,.12));
-    border:1.5px solid rgba(108,140,255,.35);
+    background:linear-gradient(135deg, rgba(108,140,255,.14), rgba(143,108,255,.14));
+    border:1.5px solid rgba(108,140,255,.4);
     border-radius:12px;
     padding:22px 24px;
     margin:0 0 22px 0;
@@ -194,6 +195,28 @@
 
   #profile-badge{cursor:pointer}
 
+  /* --- AUTO TEST --- */
+  #autotest-banner{
+    position:fixed;top:0;left:0;right:0;
+    padding:12px 20px;
+    font-size:13px;font-weight:600;
+    z-index:9999;
+    display:none;
+    text-align:center;
+    animation:slideDown .3s ease;
+    box-shadow:0 4px 12px rgba(0,0,0,.3);
+  }
+  #autotest-banner.show{display:block}
+  #autotest-banner.ok{background:linear-gradient(135deg,#166534,#15803d);color:#dcfce7}
+  #autotest-banner.ko{background:linear-gradient(135deg,#991b1b,#b91c1c);color:#fee2e2}
+  #autotest-banner button{
+    background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;
+    padding:4px 10px;border-radius:6px;margin-left:12px;cursor:pointer;font-family:inherit;
+    font-size:12px;font-weight:600;
+  }
+  #autotest-banner button:hover{background:rgba(255,255,255,.3)}
+  @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+
   @media(max-width:620px){
     h1{font-size:24px}
     #q-text{font-size:17.5px}
@@ -207,9 +230,13 @@
 </style>
 </head>
 <body>
+
+<!-- Bandeau auto-test -->
+<div id="autotest-banner"></div>
+
 <div class="app">
   <header>
-    <div class="logo">📝 Révis<span>QCM</span></div>
+    <div class="logo">📝 Révis<span>QCM</span> <small id="app-version">v?</small></div>
     <nav>
       <button data-nav="home" class="active">Accueil</button>
       <button data-nav="stats">Statistiques</button>
@@ -221,7 +248,7 @@
     <!-- ============== PROFIL ============== -->
     <section id="view-profile" class="view" style="max-width:500px;margin:60px auto;">
       <h1 style="text-align:center;margin-bottom:8px;">👤 Qui révise ?</h1>
-      <p class="sub" style="text-align:center;">Choisis ton profil ou crée-en un nouveau. Ta progression sera sauvegardée séparément.</p>
+      <p class="sub" style="text-align:center;">Choisis ton profil ou crée-en un nouveau.</p>
 
       <div class="panel">
         <h3>Profils existants</h3>
@@ -232,8 +259,7 @@
       <div class="panel">
         <h3>Créer un nouveau profil</h3>
         <div style="display:flex;gap:8px;">
-          <input id="new-profile-name" type="text" placeholder="Ton prénom ou pseudo"
-                 maxlength="20"
+          <input id="new-profile-name" type="text" placeholder="Ton prénom ou pseudo" maxlength="20"
                  style="flex:1;background:var(--panel2);border:1.5px solid var(--border);color:var(--text);
                         padding:12px;border-radius:11px;font-family:inherit;font-size:14px;outline:none;">
           <button class="btn" id="btn-create-profile" style="white-space:nowrap;">Créer</button>
@@ -244,7 +270,7 @@
     <!-- ============== ACCUEIL ============== -->
     <section id="view-home" class="view active">
       <h1>Prêt à réviser ?</h1>
-      <p class="sub">Choisis tes cours, ton mode et ta difficulté. Les questions ratées reviennent automatiquement plus souvent.</p>
+      <p class="sub">Choisis tes cours, ton mode et ta difficulté.</p>
 
       <div class="panel">
         <h3>1 · Choisis tes cours et chapitres</h3>
@@ -346,7 +372,7 @@
     <!-- ============== DONNÉES ============== -->
     <section id="view-data" class="view">
       <h1>Données & sauvegarde</h1>
-      <p class="sub">Ta progression est enregistrée automatiquement dans ce navigateur. Exporte régulièrement un fichier pour la garder.</p>
+      <p class="sub">Ta progression est enregistrée automatiquement dans ce navigateur.</p>
 
       <div class="panel">
         <h3>Actions</h3>
@@ -360,13 +386,19 @@
       </div>
 
       <div class="panel">
+        <h3>🔍 Diagnostic</h3>
+        <p class="note" style="margin-top:0;margin-bottom:12px;">Vérifie que tous les éléments du site sont correctement chargés.</p>
+        <button class="btn" id="btn-diagnostic">Lancer le diagnostic</button>
+        <div id="diagnostic-result" class="note" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="panel">
         <h3>Comment ça marche ?</h3>
         <div class="note" style="margin-top:0">
           • Chaque réponse est enregistrée (bonne ou mauvaise) dans le fichier de sauvegarde.<br>
-          • Une question ratée revient beaucoup plus souvent dans les sessions suivantes (système de priorité).<br>
-          • Une question réussie plusieurs fois d'affilée devient plus rare.<br>
-          • Le fichier exporté contient l'historique complet : sessions, réponses, moyennes. Tu peux le réimporter sur un autre appareil.<br>
-          • Chaque profil (👤 en haut à droite) a sa propre progression, isolée des autres.
+          • Une question ratée revient plus souvent dans les sessions suivantes.<br>
+          • Le fichier exporté contient l'historique complet : sessions, réponses, moyennes.<br>
+          • Chaque profil (👤 en haut à droite) a sa propre progression.
         </div>
       </div>
     </section>
@@ -374,7 +406,7 @@
 </div>
 
 <!-- =========================================================
-     CHARGEMENT DES DONNÉES : un fichier JS par chapitre
+     CHARGEMENT DES DONNÉES
      ========================================================= -->
 <script src="data/macro-ch1.js"></script>
 <script src="data/macro-ch2.js"></script>
@@ -398,12 +430,16 @@
 <script src="data/micro-ch1.js"></script>
 <script src="data/micro-ch2.js"></script>
 
-<!-- Fichier des calculs à vérifier -->
 <script src="data/calculs.js"></script>
 
 <script>
 /* =========================================================
-   1. CONSTRUCTION DES COURS à partir des fichiers data/*.js
+   VERSION DE L'APP
+   ========================================================= */
+const APP_VERSION = "2026-09-23-v3";
+
+/* =========================================================
+   1. CONSTRUCTION DES COURS
    ========================================================= */
 const COURSES = [];
 const courseMap = {};
@@ -427,10 +463,8 @@ const courseMap = {};
   courseMap[block.courseId].questions.push(...block.questions);
 });
 
-/* Calculs à vérifier (fichier séparé) */
 const CALCULS = window.RQ_CALCULS || [];
 
-/* Index global question id -> { course, q } */
 const QINDEX = {};
 COURSES.forEach(c => c.questions.forEach(q => { QINDEX[q.id] = { course:c, q }; }));
 CALCULS.forEach(q => {
@@ -493,12 +527,9 @@ function priorityWeight(qid){
   const s = state.questions[qid];
   const q = QINDEX[qid]?.q;
   let bonus = 0;
-
-  // Bonus pour les calculs en mode test
   if(typeof currentMode !== "undefined" && currentMode === "test" && q?.type === "verif"){
     bonus = 1.5;
   }
-
   if(!s || !s.seen) return 4 + bonus;
   let w = 1;
   if(s.lastResult === false) w += 7;
@@ -524,7 +555,7 @@ function weightedSample(pool, n){
 
 /* ---------- choix affichés ---------- */
 function pickDisplayChoices(q, difficulty){
-  // Questions de type "verif" : toujours 2 réponses (Correct/Incorrect)
+  // Questions de type "verif" : toujours 2 réponses
   if(q.type === "verif"){
     return [
       { index: 0, text: "✓ Correct" },
@@ -563,18 +594,17 @@ let currentMode  = "rapide";
 let currentDiff  = "facile";
 let quiz = null;
 
-/* ---------- helpers pour les modes ---------- */
 function getPerCourse(){
   if(currentMode === "rapide") return 5;
   if(currentMode === "long")   return 20;
-  return 40;   // mode test
+  return 40;
 }
 
 function getCalculsPerSubject(){
   if(currentMode !== "test") return 0;
   if(currentDiff === "facile") return 1;
   if(currentDiff === "moyen")  return 2;
-  return 3;   // difficile
+  return 3;
 }
 
 function getQuestionTime(diff){
@@ -584,7 +614,79 @@ function getQuestionTime(diff){
 }
 
 /* =========================================================
-   4. NAVIGATION
+   4. AUTO-TEST
+   ========================================================= */
+function runAutoTest(){
+  const tests = [
+    { name: "Cours chargés",         ok: COURSES.length > 0,                    detail: COURSES.length + " cours" },
+    { name: "Calculs chargés",       ok: CALCULS.length > 0,                    detail: CALCULS.length + " calculs" },
+    { name: "Div q-extra",           ok: !!document.getElementById("q-extra"),  detail: document.getElementById("q-extra") ? "✓" : "✗" },
+    { name: "Div q-choices",         ok: !!document.getElementById("q-choices"),detail: document.getElementById("q-choices") ? "✓" : "✗" },
+    { name: "Bouton mode test",      ok: !!document.querySelector('[data-mode="test"]'), detail: document.querySelector('[data-mode="test"]') ? "✓" : "✗" },
+    { name: "CSS calc-box",          ok: hasCssRule("calc-box"),                detail: hasCssRule("calc-box") ? "✓" : "✗" },
+    { name: "Fonction renderQuestion", ok: typeof renderQuestion === "function", detail: typeof renderQuestion === "function" ? "✓" : "✗" },
+    { name: "Fonction startTimer",   ok: typeof startTimer === "function",      detail: typeof startTimer === "function" ? "✓" : "✗" }
+  ];
+
+  const failed = tests.filter(t => !t.ok);
+  return { tests, failed };
+}
+
+function hasCssRule(substr){
+  try{
+    for(const sheet of document.styleSheets){
+      try{
+        const rules = sheet.cssRules || sheet.rules || [];
+        for(const r of rules){
+          if(r.selectorText && r.selectorText.includes(substr)) return true;
+          if(r.cssText && r.cssText.includes(substr)) return true;
+        }
+      }catch(e){ /* CORS */ }
+    }
+  }catch(e){}
+  return false;
+}
+
+function showAutoTestBanner(){
+  const { tests, failed } = runAutoTest();
+  const banner = document.getElementById("autotest-banner");
+
+  if(failed.length === 0){
+    banner.className = "ok show";
+    banner.innerHTML = "✅ Auto-test réussi · tous les éléments sont chargés" +
+      ' <button onclick="document.getElementById(\'autotest-banner\').classList.remove(\'show\')">Fermer</button>';
+    // Auto-hide après 5s
+    setTimeout(() => banner.classList.remove("show"), 5000);
+  } else {
+    banner.className = "ko show";
+    const details = tests.map(t =>
+      (t.ok ? "✅ " : "❌ ") + t.name + " (" + t.detail + ")"
+    ).join(" · ");
+    banner.innerHTML = "⚠️ Problème détecté : " + failed.length + " test(s) échoué(s) · " + details +
+      ' <button onclick="document.getElementById(\'autotest-banner\').classList.remove(\'show\')">Fermer</button>';
+  }
+}
+
+function runDiagnostic(){
+  const { tests, failed } = runAutoTest();
+  const el = document.getElementById("diagnostic-result");
+  const lines = tests.map(t =>
+    (t.ok ? "✅" : "❌") + " " + t.name + " → " + t.detail
+  );
+
+  const header = failed.length === 0
+    ? '<div style="color:var(--green);font-weight:700;margin-bottom:8px;">✅ Tout est OK !</div>'
+    : '<div style="color:#ff8a8a;font-weight:700;margin-bottom:8px;">⚠️ ' + failed.length + ' problème(s) détecté(s)</div>';
+
+  el.innerHTML = header +
+    '<div style="font-family:monospace;font-size:12.5px;line-height:1.8;">' +
+    lines.join("<br>") +
+    '</div>' +
+    '<div style="margin-top:10px;color:var(--muted);font-size:12px;">Version : ' + APP_VERSION + '</div>';
+}
+
+/* =========================================================
+   5. NAVIGATION
    ========================================================= */
 function show(view){
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
@@ -609,7 +711,7 @@ document.querySelectorAll("nav button").forEach(btn => {
 });
 
 /* =========================================================
-   5. PROFILS
+   6. PROFILS
    ========================================================= */
 function listProfiles(){
   const names = [];
@@ -650,9 +752,8 @@ function renderProfileScreen(){
     const del = document.createElement("button");
     del.className = "btn danger";
     del.textContent = "🗑";
-    del.title = "Supprimer ce profil";
     del.onclick = () => {
-      if(!confirm(`Supprimer définitivement le profil "${name}" et toute sa progression ?`)) return;
+      if(!confirm("Supprimer définitivement le profil " + name + " ?")) return;
       localStorage.removeItem("revisqcm_v1_" + name);
       if(CURRENT_PROFILE === name){
         CURRENT_PROFILE = null;
@@ -672,7 +773,6 @@ function selectProfile(name){
   localStorage.setItem("revisqcm_current_profile", name);
   state = loadState();
 
-  // Reset sélection
   selectedCourses = new Set();
   selectedChapters = {};
 
@@ -709,7 +809,7 @@ function updateProfileBadge(){
     badge.style.padding = "6px 12px";
     badge.style.fontSize = "12.5px";
     badge.onclick = () => {
-      if(!confirm("Changer de profil ? (ta progression actuelle est sauvegardée)")) return;
+      if(!confirm("Changer de profil ?")) return;
       document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
       document.getElementById("view-profile").classList.add("active");
       renderProfileScreen();
@@ -725,7 +825,7 @@ document.getElementById("new-profile-name").addEventListener("keydown", e => {
 });
 
 /* =========================================================
-   6. ACCUEIL
+   7. ACCUEIL
    ========================================================= */
 function toggleCourse(id){
   if(selectedCourses.has(id)){
@@ -751,7 +851,7 @@ function renderHome(){
   list.innerHTML = "";
 
   if(!COURSES.length){
-    list.innerHTML = `<div class="empty">Aucun cours chargé. Vérifie les fichiers dans /data/.</div>`;
+    list.innerHTML = '<div class="empty">Aucun cours chargé. Vérifie les fichiers dans /data/.</div>';
     updateStartButton();
     return;
   }
@@ -764,22 +864,21 @@ function renderHome(){
 
     const chapsHtml = course.chapters.map(ch => {
       const on = (selectedChapters[course.id] || []).includes(ch.id);
-      return `<button class="chip${on?" on":""}" data-chap="${ch.id}">${escapeHtml(ch.name)}</button>`;
+      return '<button class="chip' + (on?" on":"") + '" data-chap="' + ch.id + '">' + escapeHtml(ch.name) + '</button>';
     }).join("");
 
-    card.innerHTML = `
-      <div class="course-head">
-        <div class="course-icon">${course.icon}</div>
-        <div class="course-info">
-          <div class="course-name">${escapeHtml(course.name)}</div>
-          <div class="course-sub">${course.questions.length} questions${
-            st.rate !== null ? " · " + Math.round(st.rate*100) + "% de réussite" : "" }${
-            st.toReview ? " · " + st.toReview + " à revoir" : "" }</div>
-        </div>
-        <div class="check">${sel ? "✓" : ""}</div>
-      </div>
-      <div class="chapters">${chapsHtml}</div>
-    `;
+    card.innerHTML =
+      '<div class="course-head">' +
+        '<div class="course-icon">' + course.icon + '</div>' +
+        '<div class="course-info">' +
+          '<div class="course-name">' + escapeHtml(course.name) + '</div>' +
+          '<div class="course-sub">' + course.questions.length + ' questions' +
+            (st.rate !== null ? ' · ' + Math.round(st.rate*100) + '% de réussite' : '') +
+            (st.toReview ? ' · ' + st.toReview + ' à revoir' : '') + '</div>' +
+        '</div>' +
+        '<div class="check">' + (sel ? "✓" : "") + '</div>' +
+      '</div>' +
+      '<div class="chapters">' + chapsHtml + '</div>';
 
     card.querySelector(".course-head").onclick = () => toggleCourse(course.id);
     card.querySelectorAll(".chip").forEach(chip => {
@@ -815,7 +914,7 @@ function updateStartButton(){
   }
   btn.disabled = false;
   const n = questionCountPreview();
-  btn.textContent = `Commencer · ${n} question${n>1?"s":""}`;
+  btn.textContent = "Commencer · " + n + " question" + (n>1?"s":"");
 }
 
 document.getElementById("mode-seg").onclick = e => {
@@ -832,7 +931,7 @@ document.getElementById("diff-seg").onclick = e => {
 };
 
 /* =========================================================
-   7. LANCEMENT D'UNE SESSION
+   8. LANCEMENT D'UNE SESSION
    ========================================================= */
 document.getElementById("btn-start").onclick = () => {
   const courses = [...selectedCourses];
@@ -849,12 +948,10 @@ document.getElementById("btn-start").onclick = () => {
     if(currentDiff === "facile") pool = pool.filter(q => q.difficulty !== "difficile");
     if(!pool.length) pool = course.questions.slice();
 
-    // En mode test : réserver nCalc places pour les questions de calcul
     const nNormal = Math.max(0, perCourse - nCalc);
     const normalSelected = weightedSample(pool, Math.min(nNormal, pool.length));
     normalSelected.forEach(q => queue.push({ courseId: cid, q }));
 
-    // Injecter les calculs pour cette matière
     if(nCalc > 0){
       const calcPool = CALCULS.filter(c =>
         c.courseId === cid &&
@@ -888,7 +985,7 @@ function launchQuiz(queue, config){
 }
 
 /* =========================================================
-   8. AFFICHAGE D'UNE QUESTION
+   9. AFFICHAGE D'UNE QUESTION
    ========================================================= */
 function renderQuestion(){
   const item = quiz.queue[quiz.index];
@@ -902,15 +999,14 @@ function renderQuestion(){
   document.getElementById("quiz-bar").style.width =
     (quiz.index / quiz.queue.length * 100) + "%";
   document.getElementById("quiz-counter").textContent =
-    `Question ${quiz.index + 1} / ${quiz.queue.length}`;
+    "Question " + (quiz.index + 1) + " / " + quiz.queue.length;
   document.getElementById("quiz-course").textContent = course.icon + " " + course.name;
 
-  // Chapitre : pour les calculs, on affiche "Calculs"
   const chapLabel = q.type === "verif" ? "🧮 Calcul à vérifier" : (chap ? chap.name : "");
   document.getElementById("q-chapter").textContent = chapLabel;
   document.getElementById("q-text").textContent = q.q;
 
-  // Rendu du calcul (uniquement pour les questions "verif")
+  // ====== RENDU DU CALCUL (BOÎTE) ======
   const extraBox = document.getElementById("q-extra");
   extraBox.innerHTML = "";
   const isVerif = q.type === "verif" && q.calc;
@@ -918,13 +1014,21 @@ function renderQuestion(){
   if(isVerif){
     const calcBox = document.createElement("div");
     calcBox.className = "calc-box";
-    calcBox.innerHTML = `
-      <span class="verdict">${escapeHtml(q.verdict || "Vérifie ce calcul")}</span>
-      <pre>${escapeHtml(q.calc)}</pre>`;
+
+    const verdict = document.createElement("span");
+    verdict.className = "verdict";
+    verdict.textContent = q.verdict || "Vérifie ce calcul";
+
+    const pre = document.createElement("pre");
+    pre.textContent = q.calc;
+
+    calcBox.appendChild(verdict);
+    calcBox.appendChild(pre);
     extraBox.appendChild(calcBox);
   }
+  // ======================================
 
-  // Choix
+  // ====== CHOIX ======
   const container = document.getElementById("q-choices");
   container.innerHTML = "";
   container.className = "choices" + (isVerif ? " verif" : "");
@@ -993,14 +1097,13 @@ function timeUp(){
 
   const fb = document.getElementById("q-feedback");
   fb.className = "feedback ko show";
-  fb.innerHTML = `<b>⏰ Temps écoulé !</b>
-    La bonne réponse était : <strong>${escapeHtml(choiceText(item.q.choices[item.q.answer]))}</strong>
-    <div class="expl">${escapeHtml(item.q.explanation || "")}</div>`;
+  fb.innerHTML = "<b>⏰ Temps écoulé !</b>La bonne réponse était : <strong>" +
+    escapeHtml(choiceText(item.q.choices[item.q.answer])) + "</strong>" +
+    '<div class="expl">' + escapeHtml(item.q.explanation || "") + '</div>';
 
   document.getElementById("btn-next").style.display = "block";
 }
 
-/* ---------- réponse ---------- */
 function answerQuestion(choiceIndex, btn, q, item){
   if(quiz.locked) return;
   quiz.locked = true;
@@ -1024,14 +1127,13 @@ function answerQuestion(choiceIndex, btn, q, item){
   const fb = document.getElementById("q-feedback");
   fb.className = "feedback show " + (correct ? "ok" : "ko");
   fb.innerHTML = correct
-    ? `<b>✅ Correct !</b><div class="expl">${escapeHtml(q.explanation || "")}</div>`
-    : `<b>❌ Raté.</b> La bonne réponse était : <strong>${escapeHtml(choiceText(q.choices[q.answer]))}</strong>
-       <div class="expl">${escapeHtml(q.explanation || "")}</div>`;
+    ? "<b>✅ Correct !</b><div class=\"expl\">" + escapeHtml(q.explanation || "") + "</div>"
+    : "<b>❌ Raté.</b> La bonne réponse était : <strong>" + escapeHtml(choiceText(q.choices[q.answer])) + "</strong>" +
+      '<div class="expl">' + escapeHtml(q.explanation || "") + '</div>';
 
   document.getElementById("btn-next").style.display = "block";
 }
 
-/* ---------- enregistrement ---------- */
 function recordAnswer(qid, correct, timeSpent){
   const s = state.questions[qid] || (state.questions[qid] = {
     seen:0, correct:0, wrong:0, box:0, streak:0,
@@ -1063,7 +1165,7 @@ document.getElementById("btn-next").onclick = () => {
 };
 
 document.getElementById("btn-quit").onclick = () => {
-  if(!confirm("Quitter la session ? Ta progression déjà enregistrée est conservée.")) return;
+  if(!confirm("Quitter la session ? Ta progression est conservée.")) return;
   clearInterval(quiz.timerId);
   quiz = null;
   show("home");
@@ -1071,7 +1173,7 @@ document.getElementById("btn-quit").onclick = () => {
 };
 
 /* =========================================================
-   9. FIN DE SESSION
+   10. FIN DE SESSION
    ========================================================= */
 function endQuiz(){
   clearInterval(quiz.timerId);
@@ -1099,14 +1201,14 @@ function renderResults(correct, total, duration){
 
   const emoji = pct >= 0.9 ? "🏆" : pct >= 0.7 ? "🎉" : pct >= 0.5 ? "👍" : "💪";
   document.getElementById("res-emoji").textContent = emoji;
-  document.getElementById("res-score").textContent = `${correct} / ${total}`;
+  document.getElementById("res-score").textContent = correct + " / " + total;
 
   const modeTxt = quiz.config.mode === "rapide" ? "Rapide" :
                   quiz.config.mode === "long"   ? "Long" :
                   quiz.config.mode === "test"   ? "Test" : "Erreurs";
 
   document.getElementById("res-label").textContent =
-    `${Math.round(pct*100)} % de réussite · ${duration} s · ${modeTxt} · ${DIFFICULTIES[quiz.config.difficulty].label}`;
+    Math.round(pct*100) + " % de réussite · " + duration + " s · " + modeTxt + " · " + DIFFICULTIES[quiz.config.difficulty].label;
 
   const byCourse = {};
   quiz.answers.forEach(a => {
@@ -1123,11 +1225,11 @@ function renderResults(correct, total, duration){
     const color = p >= 0.7 ? "var(--green)" : p >= 0.4 ? "var(--amber)" : "var(--red)";
     const row = document.createElement("div");
     row.className = "stat-row";
-    row.innerHTML = `
-      <span class="name">${course.icon} ${escapeHtml(course.name)}</span>
-      <span style="color:var(--muted);font-size:13px">${d.c}/${d.t}</span>
-      <div class="bar-mini"><div style="width:${p*100}%;background:${color}"></div></div>
-      <span style="font-weight:700;width:44px;text-align:right">${Math.round(p*100)}%</span>`;
+    row.innerHTML =
+      '<span class="name">' + course.icon + ' ' + escapeHtml(course.name) + '</span>' +
+      '<span style="color:var(--muted);font-size:13px">' + d.c + '/' + d.t + '</span>' +
+      '<div class="bar-mini"><div style="width:' + (p*100) + '%;background:' + color + '"></div></div>' +
+      '<span style="font-weight:700;width:44px;text-align:right">' + Math.round(p*100) + '%</span>';
     rc.appendChild(row);
   });
 
@@ -1141,24 +1243,26 @@ function renderResults(correct, total, duration){
   } else {
     panel.style.display = "block";
     wrong.forEach(a => {
-      const { q, course } = QINDEX[a.qid];
+      const entry = QINDEX[a.qid];
+      const q = entry.q;
+      const course = entry.course;
       const div = document.createElement("div");
       div.className = "miss-item";
 
       const chosenTxt = a.timedOut
-        ? "<em>⏰ pas de réponse (temps écoulé)</em>"
+        ? "<em>⏰ pas de réponse</em>"
         : escapeHtml(choiceText(q.choices[a.chosen]));
 
       const calcHtml = q.type === "verif" && q.calc
-        ? `<div class="e" style="font-family:monospace;white-space:pre-wrap;background:rgba(0,0,0,.2);padding:8px;border-radius:6px;margin:6px 0;">${escapeHtml(q.calc)}</div>`
+        ? '<div class="e" style="font-family:monospace;white-space:pre-wrap;background:rgba(0,0,0,.2);padding:8px;border-radius:6px;margin:6px 0;">' + escapeHtml(q.calc) + '</div>'
         : "";
 
-      div.innerHTML = `
-        <div class="q">${course.icon} ${escapeHtml(q.q)}</div>
-        ${calcHtml}
-        <div class="a bad">Ta réponse : ${chosenTxt}</div>
-        <div class="a">✔ Bonne réponse : ${escapeHtml(choiceText(q.choices[q.answer]))}</div>
-        ${q.explanation ? `<div class="e">${escapeHtml(q.explanation)}</div>` : ""}`;
+      div.innerHTML =
+        '<div class="q">' + course.icon + ' ' + escapeHtml(q.q) + '</div>' +
+        calcHtml +
+        '<div class="a bad">Ta réponse : ' + chosenTxt + '</div>' +
+        '<div class="a">✔ Bonne réponse : ' + escapeHtml(choiceText(q.choices[q.answer])) + '</div>' +
+        (q.explanation ? '<div class="e">' + escapeHtml(q.explanation) + '</div>' : '');
       container.appendChild(div);
     });
   }
@@ -1182,13 +1286,12 @@ function renderResults(correct, total, duration){
 }
 
 /* =========================================================
-   10. STATISTIQUES
+   11. STATISTIQUES
    ========================================================= */
 function courseStats(courseId){
   const course = COURSES.find(c => c.id === courseId);
   let seen = 0, correct = 0, toReview = 0;
 
-  // Questions du cours
   course.questions.forEach(q => {
     const s = state.questions[q.id];
     if(!s || !s.seen) return;
@@ -1197,7 +1300,6 @@ function courseStats(courseId){
     if(s.lastResult === false) toReview++;
   });
 
-  // Calculs associés
   CALCULS.filter(c => c.courseId === courseId).forEach(q => {
     const s = state.questions[q.id];
     if(!s || !s.seen) return;
@@ -1219,16 +1321,13 @@ function globalStats(){
 function renderStats(){
   const g = globalStats();
 
-  document.getElementById("kpis").innerHTML = `
-    <div class="kpi">
-      <div class="v" style="color:${g.rate===null?'var(--muted)':g.rate>=0.7?'var(--green)':g.rate>=0.4?'var(--amber)':'var(--red)'}">
-        ${g.rate === null ? "—" : Math.round(g.rate*100) + " %"}
-      </div>
-      <div class="l">Moyenne globale</div>
-    </div>
-    <div class="kpi"><div class="v">${g.correct} / ${g.seen}</div><div class="l">Bonnes réponses</div></div>
-    <div class="kpi"><div class="v">${state.sessions.length}</div><div class="l">Sessions</div></div>
-    <div class="kpi"><div class="v">${Math.round(g.totalTime/60)} min</div><div class="l">Temps total</div></div>`;
+  document.getElementById("kpis").innerHTML =
+    '<div class="kpi"><div class="v" style="color:' + (g.rate===null?'var(--muted)':g.rate>=0.7?'var(--green)':g.rate>=0.4?'var(--amber)':'var(--red)') + '">' +
+      (g.rate === null ? "—" : Math.round(g.rate*100) + " %") +
+    '</div><div class="l">Moyenne globale</div></div>' +
+    '<div class="kpi"><div class="v">' + g.correct + ' / ' + g.seen + '</div><div class="l">Bonnes réponses</div></div>' +
+    '<div class="kpi"><div class="v">' + state.sessions.length + '</div><div class="l">Sessions</div></div>' +
+    '<div class="kpi"><div class="v">' + Math.round(g.totalTime/60) + ' min</div><div class="l">Temps total</div></div>';
 
   const sc = document.getElementById("stats-courses");
   sc.innerHTML = "";
@@ -1238,17 +1337,16 @@ function renderStats(){
     const color = p === null ? "var(--muted)" : p >= 0.7 ? "var(--green)" : p >= 0.4 ? "var(--amber)" : "var(--red)";
     const row = document.createElement("div");
     row.className = "stat-row";
-    row.innerHTML = `
-      <span class="name">${course.icon} ${escapeHtml(course.name)}</span>
-      <span style="color:var(--muted);font-size:12.5px">${st.seen} rép.</span>
-      <div class="bar-mini"><div style="width:${p===null?0:p*100}%;background:${color}"></div></div>
-      <span style="font-weight:700;width:44px;text-align:right">${p===null?"—":Math.round(p*100)+"%"}</span>`;
+    row.innerHTML =
+      '<span class="name">' + course.icon + ' ' + escapeHtml(course.name) + '</span>' +
+      '<span style="color:var(--muted);font-size:12.5px">' + st.seen + ' rép.</span>' +
+      '<div class="bar-mini"><div style="width:' + (p===null?0:p*100) + '%;background:' + color + '"></div></div>' +
+      '<span style="font-weight:700;width:44px;text-align:right">' + (p===null?"—":Math.round(p*100)+"%") + '</span>';
     sc.appendChild(row);
   });
 
   const sr = document.getElementById("stats-review");
   const toReview = [];
-
   const pushIfFailed = (q, course) => {
     const s = state.questions[q.id];
     if(s && s.lastResult === false) toReview.push({ course, q, s });
@@ -1261,25 +1359,24 @@ function renderStats(){
   toReview.sort((a,b) => b.s.wrong - a.s.wrong);
 
   if(!toReview.length){
-    sr.innerHTML = `<div class="empty">Aucune question à revoir pour l'instant 🎉</div>`;
+    sr.innerHTML = '<div class="empty">Aucune question à revoir 🎉</div>';
   } else {
     sr.innerHTML = toReview.slice(0, 40).map(({course, q, s}) => {
       const calcHtml = q.type === "verif" && q.calc
-        ? `<div class="e" style="font-family:monospace;white-space:pre-wrap;">${escapeHtml(q.calc)}</div>`
+        ? '<div class="e" style="font-family:monospace;white-space:pre-wrap;">' + escapeHtml(q.calc) + '</div>'
         : "";
-      return `
-      <div class="miss-item">
-        <div class="q">${course.icon} ${escapeHtml(q.q)}</div>
-        ${calcHtml}
-        <div class="a">✔ ${escapeHtml(choiceText(q.choices[q.answer]))}</div>
-        <div class="e">${s.wrong} échec${s.wrong>1?"s":""} · ${s.correct} réussite${s.correct>1?"s":""} · palier ${s.box}/5</div>
-      </div>`;
+      return '<div class="miss-item">' +
+        '<div class="q">' + course.icon + ' ' + escapeHtml(q.q) + '</div>' +
+        calcHtml +
+        '<div class="a">✔ ' + escapeHtml(choiceText(q.choices[q.answer])) + '</div>' +
+        '<div class="e">' + s.wrong + ' échec' + (s.wrong>1?"s":"") + ' · palier ' + s.box + '/5</div>' +
+      '</div>';
     }).join("");
   }
 
   const sh = document.getElementById("stats-history");
   if(!state.sessions.length){
-    sh.innerHTML = `<div class="empty">Aucune session enregistrée.</div>`;
+    sh.innerHTML = '<div class="empty">Aucune session enregistrée.</div>';
   } else {
     const rows = state.sessions.slice().reverse().slice(0, 50).map(s => {
       const names = s.courses.map(id => {
@@ -1288,36 +1385,32 @@ function renderStats(){
       }).join(" ");
       const p = s.total ? Math.round(s.correct/s.total*100) : 0;
       const color = p >= 70 ? "var(--green)" : p >= 40 ? "var(--amber)" : "var(--red)";
-      const modeTxt = s.mode === "rapide" ? "Rapide" :
-                      s.mode === "long"   ? "Long" :
-                      s.mode === "test"   ? "Test" : "Erreurs";
-      return `<tr>
-        <td>${new Date(s.date).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"2-digit"})}
-            <span style="color:var(--muted)"> ${new Date(s.date).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span></td>
-        <td>${names}</td>
-        <td>${modeTxt}</td>
-        <td>${DIFFICULTIES[s.difficulty] ? DIFFICULTIES[s.difficulty].label : s.difficulty}</td>
-        <td style="color:${color};font-weight:700">${s.correct}/${s.total} (${p}%)</td>
-      </tr>`;
+      const modeTxt = s.mode === "rapide" ? "Rapide" : s.mode === "long" ? "Long" : s.mode === "test" ? "Test" : "Erreurs";
+      return '<tr>' +
+        '<td>' + new Date(s.date).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"2-digit"}) +
+            ' <span style="color:var(--muted)">' + new Date(s.date).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) + '</span></td>' +
+        '<td>' + names + '</td>' +
+        '<td>' + modeTxt + '</td>' +
+        '<td>' + (DIFFICULTIES[s.difficulty] ? DIFFICULTIES[s.difficulty].label : s.difficulty) + '</td>' +
+        '<td style="color:' + color + ';font-weight:700">' + s.correct + '/' + s.total + ' (' + p + '%)</td>' +
+      '</tr>';
     }).join("");
-    sh.innerHTML = `<table>
-      <thead><tr><th>Date</th><th>Cours</th><th>Mode</th><th>Difficulté</th><th>Score</th></tr></thead>
-      <tbody>${rows}</tbody></table>`;
+    sh.innerHTML = '<table><thead><tr><th>Date</th><th>Cours</th><th>Mode</th><th>Difficulté</th><th>Score</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 }
 
 /* =========================================================
-   11. DONNÉES / EXPORT / IMPORT
+   12. DONNÉES / EXPORT / IMPORT
    ========================================================= */
 function renderData(){
   const g = globalStats();
   const size = new Blob([JSON.stringify(state)]).size;
-  document.getElementById("data-info").innerHTML = `
-    Profil : <strong>${escapeHtml(CURRENT_PROFILE || "?")}</strong><br>
-    Première session : <strong>${new Date(state.createdAt).toLocaleDateString("fr-FR")}</strong><br>
-    Questions suivies : <strong>${Object.keys(state.questions).length}</strong> · 
-    Sessions : <strong>${state.sessions.length}</strong> · 
-    Taille du fichier : <strong>${(size/1024).toFixed(1)} Ko</strong>`;
+  document.getElementById("data-info").innerHTML =
+    'Profil : <strong>' + escapeHtml(CURRENT_PROFILE || "?") + '</strong><br>' +
+    'Première session : <strong>' + new Date(state.createdAt).toLocaleDateString("fr-FR") + '</strong><br>' +
+    'Questions suivies : <strong>' + Object.keys(state.questions).length + '</strong> · ' +
+    'Sessions : <strong>' + state.sessions.length + '</strong> · ' +
+    'Taille : <strong>' + (size/1024).toFixed(1) + ' Ko</strong>';
 }
 
 document.getElementById("btn-export").onclick = () => {
@@ -1328,7 +1421,8 @@ document.getElementById("btn-export").onclick = () => {
   const d = new Date();
   const profileSlug = (CURRENT_PROFILE || "profil").replace(/[^a-zA-Z0-9]/g, "_");
   a.href = url;
-  a.download = `revisqcm-${profileSlug}-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}.json`;
+  a.download = "revisqcm-" + profileSlug + "-" + d.getFullYear() + "-" +
+    String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0") + ".json";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1348,20 +1442,15 @@ document.getElementById("file-input").onchange = (e) => {
       const imported = JSON.parse(reader.result);
       if(!imported.questions || !imported.sessions) throw new Error("format invalide");
 
-      const choice = confirm(
-        "Remplacer ta progression actuelle par ce fichier ?\n\n" +
-        "OK = remplacer\n" +
-        "Annuler = fusionner avec l'existant"
-      );
+      const choice = confirm("Remplacer ta progression actuelle par ce fichier ?\n\nOK = remplacer\nAnnuler = fusionner");
 
       if(choice){
         state = Object.assign(defaultState(), imported);
       } else {
         Object.entries(imported.questions || {}).forEach(([qid, s]) => {
           const cur = state.questions[qid];
-          if(!cur){
-            state.questions[qid] = s;
-          } else {
+          if(!cur){ state.questions[qid] = s; }
+          else {
             cur.seen    += s.seen;
             cur.correct += s.correct;
             cur.wrong   += s.wrong;
@@ -1390,8 +1479,8 @@ document.getElementById("file-input").onchange = (e) => {
 };
 
 document.getElementById("btn-reset").onclick = () => {
-  if(!confirm(`Effacer TOUTE la progression du profil "${CURRENT_PROFILE}" ?\n\nCette action est irréversible.`)) return;
-  if(!confirm("Vraiment sûr ? Pense à exporter avant.")) return;
+  if(!confirm("Effacer TOUTE la progression du profil " + CURRENT_PROFILE + " ?")) return;
+  if(!confirm("Vraiment sûr ?")) return;
   state = defaultState();
   saveState();
   renderHome();
@@ -1400,12 +1489,13 @@ document.getElementById("btn-reset").onclick = () => {
   alert("Progression réinitialisée.");
 };
 
+document.getElementById("btn-diagnostic").onclick = runDiagnostic;
+
 /* =========================================================
-   12. RACCOURCIS CLAVIER
+   13. RACCOURCIS CLAVIER
    ========================================================= */
 document.addEventListener("keydown", e => {
   if(!document.getElementById("view-quiz").classList.contains("active") || !quiz) return;
-
   if(e.key === "Enter" && document.getElementById("btn-next").style.display !== "none"){
     document.getElementById("btn-next").click();
     return;
@@ -1418,10 +1508,14 @@ document.addEventListener("keydown", e => {
 });
 
 /* =========================================================
-   13. DÉMARRAGE
+   14. DÉMARRAGE
    ========================================================= */
 (function init(){
-  // Support ?user=XXX dans l'URL pour pré-remplir
+  // Affiche la version
+  const v = document.getElementById("app-version");
+  if(v) v.textContent = APP_VERSION;
+
+  // Support ?user=XXX
   const urlParams = new URLSearchParams(window.location.search);
   const urlUser = urlParams.get("user");
   if(urlUser && !CURRENT_PROFILE){
@@ -1443,29 +1537,24 @@ document.addEventListener("keydown", e => {
     renderData();
     updateProfileBadge();
   }
+
+  // LANCE L'AUTO-TEST après un court délai
+  setTimeout(showAutoTestBanner, 500);
 })();
 
 /* =========================================================
-   Service Worker + Auto-update
+   15. SERVICE WORKER + AUTO-UPDATE
    ========================================================= */
 if ("serviceWorker" in navigator) {
-
   navigator.serviceWorker.register("sw.js").then(reg => {
-
-    // Vérifie les mises à jour au chargement
     reg.update();
 
-    // Si une nouvelle version est trouvée
     reg.addEventListener("updatefound", () => {
       const newWorker = reg.installing;
       if(!newWorker) return;
-
       newWorker.addEventListener("statechange", () => {
         if(newWorker.state === "installed" && navigator.serviceWorker.controller){
-          // Nouvelle version prête → on prévient le SW de prendre la main
           newWorker.postMessage("SKIP_WAITING");
-
-          // Puis on recharge la page automatiquement
           const key = "revisqcm_last_reload";
           const now = Date.now();
           const last = parseInt(sessionStorage.getItem(key) || "0");
@@ -1477,13 +1566,11 @@ if ("serviceWorker" in navigator) {
       });
     });
 
-    // Vérifie les mises à jour toutes les 60 secondes quand l'onglet est actif
     setInterval(() => {
       if(document.visibilityState === "visible") reg.update();
     }, 60000);
   });
 
-  // Si le service worker change de contrôleur (nouvelle version active)
   let refreshing = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if(refreshing) return;
