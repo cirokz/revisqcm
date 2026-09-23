@@ -1,4 +1,4 @@
-const VERSION = "2026-09-23-v7";
+const VERSION = "2026-09-23-v8";
 const CACHE = "revisqcm-" + VERSION;
 
 const ASSETS = [
